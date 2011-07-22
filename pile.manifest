@@ -1,0 +1,22 @@
+CACHE MANIFEST
+# v376
+
+cache.js
+checkmark.svg
+content.js
+#couch.js
+index.html
+jquery-1.4.2.min.js
+jquery.couch.js
+json2.js
+Math.uuid.js
+pile.css
+pile.js
+reset.css
+thing.js
+util.js
+
+NETWORK:
+/db
+http://search.yahooapis.com/
+http://thm-a01.yimg.com/

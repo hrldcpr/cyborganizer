@@ -1,0 +1,52 @@
+=BUGS=
+*offline issues...
+
+*overcome maximum zoom
+	max div height seems to be c.170,000px
+	could do 4-ary tree, so can describe location of things by branchings,
+		as e.g. '011032011' and '011031',
+		and sort lexicographically by key
+	but anything that involves creating and destroying DOM elements is bad...
+		unless it is a rare occurrence, i.e. quadrant is only renewed when height is nearing the limit.
+
+*asynchronize
+	use cacheDB synchronously, and asynchronously flush it?
+	jquery.couch.js is supposedly asynchronous, but it's not so great
+	just roll my own asynchronous cacheDB with $.ajax()
+
+*scrolling speed varies in different browsers
+	
+*non-fixed resizing
+	(which has been disabled for now)
+	doesn't work perfectly in the first place
+	and doesn't update the font size
+
+*offline images
+	db attachments? (seems unnecessary when online)
+	localStorage?
+	applicationCache?
+	
+*way to turn off background image
+
+*fix mobile rounded image corners
+
+*setTimeout for flush -- 'online' event less useful on iPhone
+
+*somehow reshaping on iPhone can give null geometry values?
+
+
+=FEATURES=
+*cleverer zooming
+	one click zooms to size A, which is size where making a new object will be of same size as clicked object
+	another click zooms to size B, which is good for interacting with editor UI
+	another click zooms back to size A, et cetera...
+	perhaps editor is only displayed at size B?
+
+*color picker
+
+*list view
+
+*search
+
+*google image search
+	supposedly aol image search is actually google?
