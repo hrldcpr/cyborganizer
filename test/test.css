@@ -1,0 +1,44 @@
+body {
+    overflow: hidden;
+}
+
+#div {
+    position: absolute;
+    width: 600px;
+    height: 600px;
+}
+
+#canvas {
+    position: absolute;
+    left: 600px;
+    width: 600px;
+    height: 600px;
+}
+
+.tile {
+    position: absolute;
+    border: 1px solid black;
+}
+
+.tile:hover {
+    background: #888;
+}
+
+.ocean {
+    background: #288;
+}
+.water {
+    background: #228;
+}
+.field {
+    background: #882;
+}
+.forest {
+    background: #282;
+}
+.hill {
+    background: #482;
+}
+.mountain {
+    background: #444;
+}
