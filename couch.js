@@ -329,12 +329,12 @@ CouchDB.createUser = function(username, password, email, roles, basicAuth) {
   } else {
     headers['X-CouchDB-WWW-Authenticate'] = 'Cookie';
   }
-  
+
   CouchDB.last_req = CouchDB.request("POST", "/_user/", {
     headers: headers,
-    body: "username=" + encodeURIComponent(username) + "&password=" + encodeURIComponent(password) 
+    body: "username=" + encodeURIComponent(username) + "&password=" + encodeURIComponent(password)
           + "&email="+ encodeURIComponent(email)+ roles_str
-    
+
   });
   return JSON.parse(CouchDB.last_req.responseText);
 }

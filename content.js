@@ -19,9 +19,9 @@ function makeContentUI(thing) {
 	var backgroundText = null;
 	var backgroundImage = null;
 	var backgroundCheck = null;
-	
+
 	var content = thing.content();
-	
+
 	thing.updateContent = function() {
 		thing.div().css({backgroundColor: 'rgb('+byte(content.red)+','+byte(content.green)+','+byte(content.blue)+')'});
 
@@ -63,7 +63,7 @@ function makeContentUI(thing) {
 				}, 0);
 			}
 		}
-		
+
 		if (content.checked) {
 			if (!backgroundCheck) {
 				backgroundCheck = $('<img class="backgroundCheck" src="checkmark.svg"/>');
@@ -77,8 +77,8 @@ function makeContentUI(thing) {
 			}
 		}
 	};
-	
-	
+
+
 	var editor;
 	function setupEditor() {
 		editor = $('<div class="editor"/>');
@@ -90,7 +90,7 @@ function makeContentUI(thing) {
 		// but do want to stopPropagation:
 		text.bind('touchstart', stopPropagation);
 		text.bind('mousedown', stopPropagation);
-	
+
 		var thumbnails = $('<div class="thumbnails"/>');
 
 		var typeTimer = null;
@@ -100,11 +100,11 @@ function makeContentUI(thing) {
 				clearTimeout(typeTimer);
 			typeTimer = setTimeout(function() {
 				typeTimer = null;
-			
+
 				content.text = text.val();
 				thing.save();
 				thing.updateContent();
-			
+
 				$.ajax({
 					url: 'http://search.yahooapis.com/ImageSearchService/V1/imageSearch',
 					dataType: 'jsonp',
@@ -123,13 +123,13 @@ function makeContentUI(thing) {
 								thing.geometry().height = thing.geometry().width * height/width;
 								thing.geometry().fixed = true;
 								thing.moved();
-					
+
 								content.backgroundImage = src;
 								thing.save();
 								thing.updateContent();
-								
+
 								thing.save();
-							
+
 								event.stopPropagation();
 								event.preventDefault();
 							});
@@ -139,14 +139,14 @@ function makeContentUI(thing) {
 				});
 			}, TYPE_TIMEOUT);
 		});
-		
+
 		var checkButton = $('<div class="checkButton"/>');
 		simpleClick(checkButton, function() {
 			content.checked = !content.checked;
 			thing.save();
 			thing.updateContent();
 		});
-		
+
 		var deleteButton = $('<div class="deleteButton"/>');
 		simpleClick(deleteButton, function() {
 			thing.remove();
@@ -164,11 +164,11 @@ function makeContentUI(thing) {
 	thing.editorVisible = function() {
 		return editorVisible;
 	};
-	
+
 	thing.showEditor = function() {
 		if (!editorVisible) {
 			if (!editor) setupEditor();
-			
+
 			editor.slideDown('fast');
 			editorVisible = true;
 		}
@@ -180,8 +180,8 @@ function makeContentUI(thing) {
 			editorVisible = false;
 		}
 	};
-	
+
 	thing.updateContent();
-	
+
 	return thing;
 }

@@ -32,7 +32,7 @@ function createThing(doc, parent) {
 		clicked:    click,
 		remove:     remove
 	};
-	
+
 	function click() {
 		if (thing.editorVisible())
 			thing.hideEditor();
@@ -46,16 +46,16 @@ function createThing(doc, parent) {
 			thing.showEditor();
 		}
 	}
-	
+
 	function remove() {
 		db.deleteDoc(doc);
 		parent.select();
 	}
-	
+
 	makeThingUI(thing);
-	
+
 	makeContentUI(thing);
-	
+
 	thing.div().fadeTo('slow', OPACITY_DESELECTED);
 
 	return thing;
@@ -69,7 +69,7 @@ function createPile(parent) {
 		moved:   function() {restrictPile(pile.geometry());},
 		clicked: click
 	};
-	
+
 	// clicking in the pile creates a new thing:
 	function click(x, y) {
 		var size = 100;
@@ -89,7 +89,7 @@ function createPile(parent) {
 	makeThingUI(pile);
 
 	pile.div().addClass('pile');
-	
+
 	pile.div().append( $('<div class="pileBackground"/>') );
 
 	return pile;
@@ -103,11 +103,11 @@ function makeUI() {
 		x:   function(x) {return (x - div.offset().left) / div.width();},
 		y:   function(y) {return (y - div.offset().top) / div.height();}
 	};
-	
+
 	if (rootPile) // if we're restarting
 		rootPile.div().remove();
 	rootPile = createPile( main );
-	
+
 	var offlineMap = "function(doc) {if(doc.owner) emit(doc.owner,null);}";
 	var things = db.view('things/byOwner', offlineMap, [username]);
 	if (things[username]) {
@@ -115,7 +115,7 @@ function makeUI() {
 			createThing(doc, rootPile);
 		});
 	}
-	
+
 	rootPile.select();
 }
 
@@ -134,7 +134,7 @@ $(function() {
 	}
 	resize();
 	$(window).resize(resize);
-	
+
 	// $(window).bind('gesturestart', stopPropagationAndPreventDefault);
 	$(window).bind('gesturechange', stopPropagationAndPreventDefault);
 	// $(window).bind('gestureend', stopPropagationAndPreventDefault);
@@ -155,7 +155,7 @@ $(function() {
 	}
 
 	$(window).bind('online', flush); // whenever we come online, flush cache
-	
+
 	if (navigator.onLine)
 		flush();
 	else // app is starting offline -- make UI from cached stuff

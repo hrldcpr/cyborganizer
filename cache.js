@@ -1,6 +1,6 @@
 function cacheDB(db) {
 	var DIRTY_KEY = '_dirty';
-	
+
 	function get(key) {
 		var val = localStorage.getItem(key);
 		if (val)
@@ -8,39 +8,39 @@ function cacheDB(db) {
 		else
 			return val;
 	}
-	
+
 	function set(key, val) {
 		localStorage.setItem(key, JSON.stringify(val));
 	}
-	
+
 	function unset(key) {
 		localStorage.removeItem(key);
 	}
-	
+
 	function allIds() {
 		var ids = []
 		for(var i=0; i<localStorage.length; i++)
 			ids.push(localStorage.key(i));
 		return ids;
 	}
-	
+
 	function getDirtied() {
 		var dirtied = get(DIRTY_KEY);
 		if (!dirtied)
 			dirtied = {};
 		return dirtied;
 	}
-	
+
 	function dirty(key) {
 		var dirtied = getDirtied();
 		dirtied[key] = true;
 		set(DIRTY_KEY, dirtied);
 	}
-	
+
 	function clean() {
 		unset(DIRTY_KEY);
 	}
-	
+
 	function viewRowsToMap(rows) {
 		var result = {};
 		$.each(rows.rows, function(i, row) {
@@ -53,7 +53,7 @@ function cacheDB(db) {
 		});
 		return result;
 	}
-	
+
 	var wrapper = {
 		open: function(id) {
 			if (navigator.onLine) {
@@ -68,7 +68,7 @@ function cacheDB(db) {
 			}
 			return get(id);
 		},
-		
+
 		save: function(doc) {
 			if (!doc._id) // always generate _id locally
 				doc._id = Math.uuid();
@@ -78,7 +78,7 @@ function cacheDB(db) {
 				dirty(doc._id); // cache is now ahead of server
 			set(doc._id, doc);
 		},
-		
+
 		deleteDoc: function(doc) {
 			if (navigator.onLine)
 				db.removeDoc(doc, {error: function() {dirty(doc._id);}}); // async
@@ -86,7 +86,7 @@ function cacheDB(db) {
 				dirty(doc._id);
 			unset(doc._id);
 		},
-		
+
 		// allDocs: function(ids) {
 		// 	if (navigator.onLine) {
 		// 		var rows = db.allDocs({include_docs: true}, ids);
@@ -103,7 +103,7 @@ function cacheDB(db) {
 		// 		return result;
 		// 	}
 		// },
-		
+
 		view: function(view, offlineMap, keys) {
 			if (navigator.onLine) {
 				var options = {include_docs: true};
@@ -126,7 +126,7 @@ function cacheDB(db) {
 							result[key] = [];
 						result[key].push(doc);
 					}
-				}	
+				}
 				eval("var map = " + offlineMap); // var map = eval(...); doesn't work, oh well.
 				$.each(allIds(), function(i, id) {
 					doc = get(id);
@@ -135,7 +135,7 @@ function cacheDB(db) {
 				return result;
 			}
 		},
-		
+
 		flush: function() {
 			if (navigator.onLine) {
 				var dirtied = getDirtied();
@@ -154,11 +154,11 @@ function cacheDB(db) {
 				clean();
 			}
 		},
-		
+
 		clearCache: function() {
 			localStorage.clear();
 		}
 	};
-	
+
 	return wrapper;
 }

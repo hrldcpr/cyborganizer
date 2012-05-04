@@ -21,7 +21,7 @@ function simpleClick(e, handler) {
 		event.stopPropagation();
 		event.preventDefault();
 	}
-	
+
 	e.bind('touchstart', start);
 	e.bind('mousedown', start);
 }

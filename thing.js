@@ -76,15 +76,15 @@ function makeThingUI(thing) {
 
     var div = $('<div class="thing"/>');
 	thing.div = constant(div);
-	
+
 	var parent = thing.parent();
 	var geometry = thing.geometry();
-	
+
 	// keep track of largest zIndex:
 	if (geometry.zIndex > zIndex)
 		zIndex = geometry.zIndex;
-	
-	
+
+
 	var innerRemove = thing.remove;
 	thing.remove = function() {
 		div.remove();
@@ -94,7 +94,7 @@ function makeThingUI(thing) {
 	var innerMoved = thing.moved;
 	thing.moved = function() {
 		if (innerMoved) innerMoved();
-		
+
 		div.css({
 			width:    percent(geometry.scale * geometry.width),
 			height:   percent(geometry.scale * geometry.height),
@@ -103,16 +103,16 @@ function makeThingUI(thing) {
 			zIndex:   geometry.zIndex,
 			fontSize: percent(geometry.scale * geometry.height)
 		});
-	};	
-	
+	};
+
 	thing.x = function(x) {
 		return (parent.x(x) - geometry.left) / geometry.width / geometry.scale;
-	};	
+	};
 
 	thing.y = function(y) {
 		return (parent.y(y) - geometry.top) / geometry.height / geometry.scale;
 	};
-	
+
 	thing.select = function() {
 		if (thing!==selected) {
 			if (selected)
@@ -135,7 +135,7 @@ function makeThingUI(thing) {
 			if (thing.selected) thing.selected();
 		}
 	};
-	
+
 	thing.deselect = function() {
 		if (thing===selected) {
 			selected = null;
@@ -154,7 +154,7 @@ function makeThingUI(thing) {
 
 	function pointerStart(x, y, afterGesture) {
 		gesture = bool(afterGesture); // (in case afterGesture is undefined)
-	
+
 		x0 = thing.x(x);
 		y0 = thing.y(y);
 	}
@@ -178,28 +178,28 @@ function makeThingUI(thing) {
 			else {
 				if (thing.clicked) thing.clicked(x0, y0);
 			}
-		
+
 			canSelect = true;
 		}
 	}
-	
-	
+
+
 	var xA0, yA0, xB0, yB0, scale0, width0, height0;
-	
+
 	function gestureStart(xA, yA, xB, yB) {
 		gesture = true;
 		canSelect = false;
-		
+
 		scale0 = geometry.scale;
 		width0 = geometry.width;
 		height0 = geometry.height;
-		
+
 		xA0 = thing.x(xA);
 		yA0 = thing.y(yA);
 		xB0 = thing.x(xB);
 		yB0 = thing.y(yB);
 	}
-	
+
 	function gestureMove(xA, yA, xB, yB) {
 		// TODO make !geometry.fixed work better; for now we always fix ratio
 		if (true || geometry.fixed) { // can't change aspect ratio
@@ -213,7 +213,7 @@ function makeThingUI(thing) {
 			var ky = (thing.y(yB) - thing.y(yA)) / (yB0 - yA0);
 			geometry.height *= Math.max(ky, 0.5);
 		}
-		
+
 		geometry.left += (thing.x(xA) - xA0 + thing.x(xB) - xB0) * geometry.width * geometry.scale / 2;
 		geometry.top += (thing.y(yA) - yA0 + thing.y(yB) - yB0) * geometry.height * geometry.scale / 2;
 
@@ -223,7 +223,7 @@ function makeThingUI(thing) {
 
     function handleTouchStart(event) {
 		touchCapable = true;
-		
+
 		var touches = event.originalEvent.touches;
 		// console.log('touchstart'); $.each(touches, function (i,x) {console.log(x.identifier);});
 		if (touches.length===0)
@@ -236,7 +236,7 @@ function makeThingUI(thing) {
 		}
 		else if (touches.length===2)
 			gestureStart(touches[0].pageX, touches[0].pageY, touches[1].pageX, touches[1].pageY);
-	
+
 		event.stopPropagation();
 		event.preventDefault();
     }
@@ -250,7 +250,7 @@ function makeThingUI(thing) {
 			pointerMove(touches[0].pageX, touches[0].pageY);
 		else
 			gestureMove(touches[0].pageX, touches[0].pageY, touches[1].pageX, touches[1].pageY);
-		
+
 		event.stopPropagation();
 		event.preventDefault();
     }
@@ -261,12 +261,12 @@ function makeThingUI(thing) {
 		if (touches.length===0) {
 			$(window).unbind('touchmove', handleTouchMove);
 			$(window).unbind('touchend', handleTouchEnd);
-			
+
 			pointerEnd();
 		}
 		else if (touches.length===1)
 			pointerStart(touches[0].pageX, touches[0].pageY, true);
-		
+
 		event.stopPropagation();
 		event.preventDefault();
     }
@@ -278,7 +278,7 @@ function makeThingUI(thing) {
 
 			$(window).bind('mousemove', handleMouseMove);
 			$(window).bind('mouseup', handleMouseUp);
-			
+
 			event.stopPropagation();
 			event.preventDefault();
 		}
@@ -286,7 +286,7 @@ function makeThingUI(thing) {
 
     function handleMouseMove(event) {
 		pointerMove(event.pageX, event.pageY);
-		
+
 		event.stopPropagation();
 		event.preventDefault();
     }
@@ -296,23 +296,23 @@ function makeThingUI(thing) {
 		$(window).unbind('mouseup', handleMouseUp);
 
 		pointerEnd();
-		
+
 		event.stopPropagation();
 		event.preventDefault();
     }
-	
+
 	var scrollTimer = null;
-	
+
 	function handleMouseWheel(event) {
 		// TODO simpler way to do this using just local coordinates?
-		
+
 		// mouse coordinates in parent:
 		var x = parent.x(event.pageX);
 		var y = parent.y(event.pageY);
 		// initial mouse coordinates in thing:
 		var x0 = (x - geometry.left) / geometry.width / geometry.scale;
 		var y0 = (y - geometry.top) / geometry.height / geometry.scale;
-	
+
 		geometry.scale *= Math.pow(WHEEL_RATE, event.wheelDelta/120);
 
 		// move thing such that mouse coordinates in thing are same as before scaling:
@@ -320,7 +320,7 @@ function makeThingUI(thing) {
 		geometry.top = y - geometry.scale * geometry.height * y0;
 
 		thing.moved();
-	
+
 		if (thing.save) {
 			// save after a second of not scrolling
 			if (scrollTimer)
@@ -330,11 +330,11 @@ function makeThingUI(thing) {
 				thing.save();
 			}, SCROLL_TIMEOUT);
 		}
-		
+
 		event.stopPropagation();
 		event.preventDefault();
 	}
-	
+
 	function handleSelect(event) {
 		// make sure selected thing hasn't denied selection (e.g. during a drag or gesture; see above)
 		// and that this isn't a multitouch:
