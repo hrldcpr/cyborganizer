@@ -18,10 +18,15 @@ class Square(object):
             channels = []
             for v in self.v:
                 # children / 4 = v, or 4*v - children = 0:
+                v_remaining = 4 * v
                 children = []
-                for remaining in (3, 2, 1, 0):
-                    children.append(random.randint(max(0, 4*v - sum(children) - remaining*B),
-                                                   min(B, 4*v - sum(children) - remaining*0)))
+                for n_remaining in (3, 2, 1, 0):
+                    child = random.randint(max(0, v_remaining - n_remaining*B),
+                                           min(B, v_remaining - n_remaining*0))
+                    v_remaining -= child
+                    children.append(child)
+                assert not v_remaining, 'children do not average to parent'
+                # we must shuffle to make distribution independent of order:
                 random.shuffle(children)
                 channels.append(children)
 
