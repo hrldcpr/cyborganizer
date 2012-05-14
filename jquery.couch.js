@@ -271,7 +271,7 @@
       };
     },
 
-    encodeDocId: encodeDocId, 
+    encodeDocId: encodeDocId,
 
     info: function(options) {
       ajax(

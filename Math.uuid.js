@@ -18,7 +18,7 @@ Dual licensed under the MIT and GPL licenses.
  *   // No arguments  - returns RFC4122, version 4 ID
  *   >>> Math.uuid()
  *   "92329D39-6F5C-4520-ABFC-AAB64544E172"
- * 
+ *
  *   // One argument - returns ID of the specified length
  *   >>> Math.uuid(15)     // 15 character ID (default base=62)
  *   "VcydxgltxrVZSTV"
@@ -33,7 +33,7 @@ Dual licensed under the MIT and GPL licenses.
  */
 Math.uuid = (function() {
   // Private array of chars to use
-  var CHARS = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'.split(''); 
+  var CHARS = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'.split('');
 
   return function (len, radix) {
     var chars = CHARS, uuid = [];
