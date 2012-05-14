@@ -19,10 +19,12 @@ class Square(object):
             for v in self.v:
                 # children / 4 = v, or 4*v - children = 0:
                 v_remaining = 4 * v
+                n_unassigned = 4
                 children = []
-                for n_remaining in (3, 2, 1, 0):
-                    child = random.randint(max(0, v_remaining - n_remaining*B),
-                                           min(B, v_remaining - n_remaining*0))
+                for _ in xrange(4):
+                    n_unassigned -= 1
+                    child = random.randint(max(0, v_remaining - n_unassigned*B),
+                                           min(B, v_remaining - n_unassigned*0))
                     v_remaining -= child
                     children.append(child)
                 assert not v_remaining, 'children do not average to parent'
