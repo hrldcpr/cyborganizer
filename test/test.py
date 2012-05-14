@@ -3,7 +3,24 @@ import random
 import pygame
 
 size = width, height = 640, 640
-B = 255
+
+
+def average_ints(avg, lo, hi, n):
+    """return a list of n ints between lo and hi which average to avg"""
+    # sum(xs) / n = avg, or n*avg - sum(xs) = 0:
+    remaining = n * avg
+    unassigned = n
+    xs = []
+    for _ in xrange(n):
+        unassigned -= 1
+        x = random.randint(max(lo, remaining - unassigned*hi),
+                           min(hi, remaining - unassigned*lo))
+        remaining -= x
+        xs.append(x)
+    # we must shuffle to make distribution independent of order:
+    random.shuffle(xs)
+    return xs
+
 
 class Square(object):
     def __init__(self, x, y, z, v):
@@ -15,28 +32,12 @@ class Square(object):
 
     def get_children(self):
         if not self.children:
-            channels = []
-            for v in self.v:
-                # children / 4 = v, or 4*v - children = 0:
-                v_remaining = 4 * v
-                n_unassigned = 4
-                children = []
-                for _ in xrange(4):
-                    n_unassigned -= 1
-                    child = random.randint(max(0, v_remaining - n_unassigned*B),
-                                           min(B, v_remaining - n_unassigned*0))
-                    v_remaining -= child
-                    children.append(child)
-                assert not v_remaining, 'children do not average to parent'
-                # we must shuffle to make distribution independent of order:
-                random.shuffle(children)
-                channels.append(children)
-
+            channels = [average_ints(v, 0, 255, 4)
+                        for v in self.v]
             children = zip(*channels)
             self.children = tuple(Square(2*self.x + i, 2*self.y + j, self.z + 1,
                                          children.pop())
-                                  for i in (0, 1)
-                                  for j in (0, 1))
+                                  for i in (0, 1) for j in (0, 1))
         return self.children
 
     def draw(self, screen, d=0):
