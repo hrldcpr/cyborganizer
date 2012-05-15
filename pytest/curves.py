@@ -9,30 +9,40 @@ import square
 
 
 _splits = collections.defaultdict(set)
+# ways to split 1-squares into 4-squares, excluding rotations which we automatically add:
+# (note that trailing spaces are just so that we can use plain backslashes :'( )
 _splits.update({u' ': {ur'   '
                        ur'   ',
+
                        ur'/] '
                        ur'‾  ',
+
                        ur'/\ '
                        ur'‾‾ ',
+
                        ur'/\ '
                        ur'\/ '},
+
                 u']': {ur']  '
                        ur']  ',
+
                        ur'\  '
                        ur'/  ',
+
                        ur'‾\ '
-                       ur'_/ '
-                       },
+                       ur'_/ '},
+
                 u'/': {ur' / '
                        ur'/  ',
+
                        ur'/‾ '
                        ur']  '}})
-# get rid of extra spaces, which were solely so that we could type backslashes in the clear :'(
+# get rid of trailing spaces:
 for k,v in _splits.items():
     _splits[k] = {(s[0] + s[1] +
                    s[3] + s[4]) for s in v}
 
+# 90 degree rotations of 1-squares:
 _rotated = {u' ': u' ',
             u']': u'‾',
             u'‾': u'[',
@@ -41,12 +51,12 @@ _rotated = {u' ': u' ',
             u'/': u'\\',
             u'\\': u'/'}
 
-print _rotated
-
+# 90 degree rotation of a 4-square:
 def _rotate(child):
     return (_rotated[child[2]] + _rotated[child[0]] +
             _rotated[child[3]] + _rotated[child[1]])
 
+# add all rotated splits:
 for parent,children in _splits.items():
     for _ in xrange(3): # 90, 180, and 270 degrees
         parent = _rotated[parent]
@@ -54,10 +64,24 @@ for parent,children in _splits.items():
         _splits[parent] |= children
 
 for parent,children in _splits.iteritems():
-    print '%s (%d)' % (parent, len(children))
+    print ' _ ', '  ',
     for child in children:
-        print '|', child[:2]
-        print '|', child[2:]
+        print ' __ ',
+    print
+
+    print '|' + parent + '|', '=>',
+    for child in children:
+        print '|' + child[:2] + '|',
+    print
+
+    print ' ‾ ', '  ',
+    for child in children:
+        print '|' + child[2:] + '|',
+    print
+
+    print '   ', '  ',
+    for child in children:
+        print ' ‾‾ ',
     print
 
 
