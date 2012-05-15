@@ -1,3 +1,5 @@
+# coding=utf-8
+
 import collections
 import random
 
@@ -7,32 +9,39 @@ import square
 
 
 _splits = collections.defaultdict(set)
-_splits.update({' ': {'  '
-                      '  ',
-                      'J<'
-                      '^ ',
-                      'JL'
-                      '^^',
-                      'JL'
-                      'LJ'},
-                '<': {'< '
-                      '< ',
-                      'L '
-                      'J ',
-                      # '^L'
-                      # 'vJ'
-                      },
-                'J': {' J'
-                      'J ',
-                      'J^'
-                      '< '}})
-_rotated = {' ': ' ',
-            '<': '^',
-            '^': '>',
-            '>': 'v',
-            'v': '<',
-            'J': 'L',
-            'L': 'J'}
+_splits.update({u' ': {ur'   '
+                       ur'   ',
+                       ur'/] '
+                       ur'‾  ',
+                       ur'/\ '
+                       ur'‾‾ ',
+                       ur'/\ '
+                       ur'\/ '},
+                u']': {ur']  '
+                       ur']  ',
+                       ur'\  '
+                       ur'/  ',
+                       ur'‾\ '
+                       ur'_/ '
+                       },
+                u'/': {ur' / '
+                       ur'/  ',
+                       ur'/‾ '
+                       ur']  '}})
+# get rid of extra spaces, which were solely so that we could type backslashes in the clear :'(
+for k,v in _splits.items():
+    _splits[k] = {(s[0] + s[1] +
+                   s[3] + s[4]) for s in v}
+
+_rotated = {u' ': u' ',
+            u']': u'‾',
+            u'‾': u'[',
+            u'[': u'_',
+            u'_': u']',
+            u'/': u'\\',
+            u'\\': u'/'}
+
+print _rotated
 
 def _rotate(child):
     return (_rotated[child[2]] + _rotated[child[0]] +
@@ -62,13 +71,13 @@ class CurveSquare(square.Square):
         surface.fill((64, 64, 128))
         pygame.draw.rect(surface, (64,64,64),
                          (1, 1, w, h))
-        line = {' ': None,
-                '^': ((1, 1), (w, 1)),
-                '>': ((w, 1), (w, h)),
-                'v': ((w, h), (1, h)),
-                '<': ((1, h), (1, 1)),
-                'L': ((1, 1), (w, h)),
-                'J': ((1, h), (w, 1))}[self.v]
+        line = {u' ': None,
+                u'‾': ((1, 1), (w, 1)),
+                u'[': ((w, 1), (w, h)),
+                u'_': ((w, h), (1, h)),
+                u']': ((1, h), (1, 1)),
+                u'\\': ((1, 1), (w, h)),
+                u'/': ((1, h), (w, 1))}[self.v]
         if line:
             pygame.draw.line(surface, (255,255,255),
                              line[0], line[1])
