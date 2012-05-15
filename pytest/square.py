@@ -28,9 +28,9 @@ class Square(object):
 
     def get_children(self):
         if not self.children:
-            values = self.get_child_values()
+            values = iter(self.get_child_values())
             self.children = tuple(self.__class__(2*self.x + i, 2*self.y + j,
-                                                 self.z + 1, values.pop())
+                                                 self.z + 1, values.next())
                                   for j in (0, 1) for i in (0, 1))
         return self.children
 

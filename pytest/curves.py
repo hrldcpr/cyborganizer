@@ -53,18 +53,21 @@ for parent,children in _splits.iteritems():
 
 class CurveSquare(square.Square):
     def get_child_values(self):
-        return list(random.choice(tuple(_splits[self.v])))
+        return random.choice(tuple(_splits[self.v]))
 
     def draw(self, surface):
-        w = surface.get_width()
-        h = surface.get_height()
+        w = surface.get_width() - 2
+        h = surface.get_height() - 2
+        surface.fill((0, 0, 128))
+        pygame.draw.rect(surface, (0,0,0),
+                         (1, 1, w, h))
         line = {' ': None,
-                '^': ((0, 0), (w, 0)),
-                '>': ((w, 0), (w, h)),
-                'v': ((w, h), (0, h)),
-                '<': ((0, h), (0, 0)),
-                'L': ((0, 0), (w, h)),
-                'J': ((w, h), (0, 0))}[self.v]
+                '^': ((1, 1), (w, 1)),
+                '>': ((w, 1), (w, h)),
+                'v': ((w, h), (1, h)),
+                '<': ((1, h), (1, 1)),
+                'L': ((1, 1), (w, h)),
+                'J': ((1, h), (w, 1))}[self.v]
         if line:
             pygame.draw.line(surface, (255,255,255),
                              line[0], line[1])
