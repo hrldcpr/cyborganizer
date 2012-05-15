@@ -19,8 +19,9 @@ _splits.update({' ': {'  '
                       '< ',
                       'L '
                       'J ',
-                      '^L'
-                      'vJ'},
+                      # '^L'
+                      # 'vJ'
+                      },
                 'J': {' J'
                       'J ',
                       'J^'
@@ -58,8 +59,8 @@ class CurveSquare(square.Square):
     def draw(self, surface):
         w = surface.get_width() - 2
         h = surface.get_height() - 2
-        surface.fill((0, 0, 128))
-        pygame.draw.rect(surface, (0,0,0),
+        surface.fill((64, 64, 128))
+        pygame.draw.rect(surface, (64,64,64),
                          (1, 1, w, h))
         line = {' ': None,
                 '^': ((1, 1), (w, 1)),
