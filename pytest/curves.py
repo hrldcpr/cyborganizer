@@ -29,14 +29,16 @@ _splits.update({u' ': {ur'   '
                        ur'\  '
                        ur'/  ',
 
-                       ur'‾\ '
-                       ur'_/ '},
+                       # ur'‾\ '
+                       # ur'_/ ',
+                       },
 
                 u'/': {ur' / '
                        ur'/  ',
 
                        ur'/‾ '
-                       ur']  '}})
+                       ur']  ',
+                       }})
 # get rid of trailing spaces:
 for k,v in _splits.items():
     _splits[k] = {(s[0] + s[1] +
@@ -63,6 +65,7 @@ for parent,children in _splits.items():
         children = {_rotate(child) for child in children}
         _splits[parent] |= children
 
+
 for parent,children in _splits.iteritems():
     print ' _ ', '  ',
     for child in children:
@@ -85,7 +88,9 @@ for parent,children in _splits.iteritems():
     print
 
 
-class CurveSquare(square.Square):
+class CornerLineSquare(square.Square):
+    # value is one of ' ', '‾', '[', '_', ']', '/', '\'
+
     def get_child_values(self):
         return random.choice(tuple(_splits[self.v]))
 
@@ -105,3 +110,12 @@ class CurveSquare(square.Square):
         if line:
             pygame.draw.line(surface, (255,255,255),
                              line[0], line[1])
+
+class LineSquare(square.Square):
+    # value is a dict {i: x, j: y} or None
+    # where i and j in (0,1,2,3) specify sides of the square
+    # and x and y between 0.0 and 1.0 specify distance along the side
+
+    def get_child_values(self):
+        # TODO
+        return
