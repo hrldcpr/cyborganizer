@@ -8,10 +8,10 @@ import pygame
 import square
 
 
-_splits = collections.defaultdict(set)
+_SPLITS = collections.defaultdict(set)
 # ways to split 1-squares into 4-squares, excluding rotations which we automatically add:
 # (note that trailing spaces are just so that we can use plain backslashes :'( )
-_splits.update({u' ': {ur'   '
+_SPLITS.update({u' ': {ur'   '
                        ur'   ',
 
                        ur'/] '
@@ -40,12 +40,12 @@ _splits.update({u' ': {ur'   '
                        ur']  ',
                        }})
 # get rid of trailing spaces:
-for k,v in _splits.items():
-    _splits[k] = {(s[0] + s[1] +
+for k,v in _SPLITS.items():
+    _SPLITS[k] = {(s[0] + s[1] +
                    s[3] + s[4]) for s in v}
 
 # 90 degree rotations of 1-squares:
-_rotated = {u' ': u' ',
+_ROTATED = {u' ': u' ',
             u']': u'‾',
             u'‾': u'[',
             u'[': u'_',
@@ -55,18 +55,18 @@ _rotated = {u' ': u' ',
 
 # 90 degree rotation of a 4-square:
 def _rotate(child):
-    return (_rotated[child[2]] + _rotated[child[0]] +
-            _rotated[child[3]] + _rotated[child[1]])
+    return (_ROTATED[child[2]] + _ROTATED[child[0]] +
+            _ROTATED[child[3]] + _ROTATED[child[1]])
 
 # add all rotated splits:
-for parent,children in _splits.items():
+for parent,children in _SPLITS.items():
     for _ in xrange(3): # 90, 180, and 270 degrees
-        parent = _rotated[parent]
+        parent = _ROTATED[parent]
         children = {_rotate(child) for child in children}
-        _splits[parent] |= children
+        _SPLITS[parent] |= children
 
 
-for parent,children in _splits.iteritems():
+for parent,children in _SPLITS.iteritems():
     print ' _ ', '  ',
     for child in children:
         print ' __ ',
@@ -92,7 +92,7 @@ class CornerLineSquare(square.Square):
     # value is one of ' ', '‾', '[', '_', ']', '/', '\'
 
     def get_child_values(self):
-        return random.choice(tuple(_splits[self.v]))
+        return random.choice(tuple(_SPLITS[self.v]))
 
     def draw(self, surface):
         w = surface.get_width() - 2
@@ -111,11 +111,53 @@ class CornerLineSquare(square.Square):
             pygame.draw.line(surface, (255,255,255),
                              line[0], line[1])
 
+
+def ifirst(xs):
+    for x in xs:
+        return x
+
+def _opposite(s):
+    return _rotated[_rotated[s]]
+
+_NEIGHBORS = {0: {u'[': 1,
+                  u'_': 2},
+              1: {u'_': 3},
+              2: {u'[': 3}}
+print _NEIGHBORS
+
+
 class LineSquare(square.Square):
     # value is a dict {i: x, j: y} or None
-    # where i and j in (0,1,2,3) specify sides of the square
+    # where i and j in (']','‾','[','_') specify sides of the square
     # and x and y between 0.0 and 1.0 specify distance along the side
 
+
+    def parent_to_child(s, x):
+        """return (i, t, y) where i in (0,1,2,3) is the child index,
+        t in (']','‾','[','_') is the side of the child square,
+        and y between 0.0 and 1.0 is distance along child side
+
+        note that t will always equal s THINK ABOUT IT"""
+
+        a,b = {'‾': (0, 1),
+               '[': (1, 3),
+               '_': (3, 2),
+               ']': (2, 0)}[i]
+        if x < 0.5:
+            return (a, s, 2*x)
+        else:
+            return (b, s, 2*x - 1)
+
     def get_child_values(self):
-        # TODO
+        children = {}
+        if self.v:
+            start,end = self.v.items()
+            child, s, x = parent_to_child(*start)
+            children[child] = {s: x}
+        else:
+            start = end = None
+            child = random.randrange(4)
+            children[child] = {}
+        children = range(4)
+        
         return
