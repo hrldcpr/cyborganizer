@@ -34,6 +34,15 @@ class Square(object):
                                   for j in (0, 1) for i in (0, 1))
         return self.children
 
+    def get_square(self, x, y, z):
+        if (x, y, z) == (self.x, self.y, self.z):
+            return self
+        elif z > self.z:
+            k = 1 << (z - self.z)
+            if (k*self.x <= x <= k*(self.x+1)
+                and k*self.y <=
+        raise ValueError('square (%d,%d,%d) does not contain square (%d,%d,%d)' % (x,y,z,self.x,self.y,self.z))
+
     def draw_children(self, screen, d=0):
         if d > 0:
             for child in self.get_children():

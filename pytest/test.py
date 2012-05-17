@@ -18,15 +18,19 @@ pygame.display.flip()
 
 d = 0
 while True:
-    for event in pygame.event.get():
+    for event in pygame.event.get([pygame.QUIT, pygame.KEYUP, pygame.MOUSEBUTTONUP]):
         if event.type == pygame.QUIT:
+            print 'QUIT'
             sys.exit()
 
         elif event.type == pygame.KEYUP:
             if event.key == ord('-'):
-                d = max(0, d - 1)
+                if d > 0: d -= 1
             elif event.key == ord('='):
-                d = d + 1
+                d += 1
+
+        elif event.type == pygame.MOUSEBUTTONUP and event.button == 1:
+            event.pos
 
         print 'detail=%d' % d
         root.draw_children(screen, d)
