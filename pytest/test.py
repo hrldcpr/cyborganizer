@@ -22,8 +22,12 @@ while True:
         if event.type == pygame.QUIT:
             sys.exit()
 
-        elif (event.type == pygame.KEYUP
-              and event.key == ord(' ')):
-            d += 1
-            root.draw_children(screen, d)
-            pygame.display.flip()
+        elif event.type == pygame.KEYUP:
+            if event.key == ord('-'):
+                d = max(0, d - 1)
+            elif event.key == ord('='):
+                d = d + 1
+
+        print 'detail=%d' % d
+        root.draw_children(screen, d)
+        pygame.display.flip()
