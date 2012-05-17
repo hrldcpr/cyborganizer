@@ -30,7 +30,10 @@ while True:
                 d += 1
 
         elif event.type == pygame.MOUSEBUTTONUP and event.button == 1:
-            event.pos
+            x,y = event.pos
+            i = 2 * x / width
+            j = 2 * y / height
+            root = root.get_children()[2*j + i]
 
         print 'detail=%d' % d
         root.draw_children(screen, d)
