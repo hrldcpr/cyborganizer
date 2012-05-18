@@ -1,4 +1,5 @@
 # coding=utf-8
+from __future__ import unicode_literals
 
 import collections
 import random
@@ -9,13 +10,13 @@ import square
 
 
 # 90 degree rotations:
-ROTATED = {u' ': u' ',
-           u']': u'‾',
-           u'‾': u'[',
-           u'[': u'_',
-           u'_': u']',
-           u'/': u'\\',
-           u'\\': u'/',
+ROTATED = {' ': ' ',
+           ']': '‾',
+           '‾': '[',
+           '[': '_',
+           '_': ']',
+           '/': '\\',
+           '\\': '/',
            0: 1,
            1: 3,
            3: 2,
@@ -32,9 +33,9 @@ def rotate(child):
                    for i in xrange(4))
 
 # lines on a 1-square in terms of 4-squares:
-LINES = {u' ': None,
-         u'‾': (0, 1),
-         u'/': (2, 1)}
+LINES = {' ': None,
+         '‾': (0, 1),
+         '/': (2, 1)}
 # add rotations:
 for side,line in LINES.items():
     if line:
@@ -57,34 +58,34 @@ for side,line in LINES.iteritems():
 
 # ways to split 1-squares into 4-squares, excluding rotations which we automatically add:
 # (note that trailing spaces are just so that we can use plain backslashes :'( )
-SPLITS = {u' ': {ur'   '
-                 ur'   ',
+SPLITS = {' ': {r'   '
+                r'   ',
 
-                 ur'/] '
-                 ur'‾  ',
+                r'/] '
+                r'‾  ',
 
-                 ur'/\ '
-                 ur'‾‾ ',
+                r'/\ '
+                r'‾‾ ',
 
-                 ur'/\ '
-                 ur'\/ '},
+                r'/\ '
+                r'\/ '},
 
-          u']': {ur']  '
-                 ur']  ',
+          ']': {r']  '
+                r']  ',
 
-                 ur'\  '
-                 ur'/  ',
+                r'\  '
+                r'/  ',
 
-                 # ur'‾\ '
-                 # ur'_/ ',
-                 },
+                # r'‾\ '
+                # r'_/ ',
+                },
 
-          u'/': {ur' / '
-                 ur'/  ',
+          '/': {r' / '
+                r'/  ',
 
-                 ur'/‾ '
-                 ur']  ',
-                 }}
+                r'/‾ '
+                r']  ',
+                }}
 # get rid of trailing spaces:
 for k,v in SPLITS.items():
     SPLITS[k] = {(s[0] + s[1] +
@@ -182,7 +183,7 @@ class LineSquare(square.Square):
                      random.random())
             # end at the same point, but in the neighboring child:
             end = (NEIGHBORS[start[0]][start[1]],
-                   opposite(start[1])
+                   opposite(start[1]),
                    1 - start[2])
         else: # half the time
             # empty children for empty parent:
