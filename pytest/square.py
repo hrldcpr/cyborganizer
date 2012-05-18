@@ -19,32 +19,27 @@ def average_ints(avg, lo, hi, n):
 
 
 class Square(object):
-    def __init__(self, x, y, z, v):
-        self.x = x
-        self.y = y
-        self.z = z
+    def __init__(self, v):
         self.v = v
         self.children = None
 
     def get_children(self):
         if not self.children:
-            values = iter(self.get_child_values())
-            self.children = tuple(self.__class__(2*self.x + i, 2*self.y + j,
-                                                 self.z + 1, values.next())
-                                  for j in (0, 1) for i in (0, 1))
+            self.children = tuple(self.__class__(v)
+                                  for v in self.get_child_values())
         return self.children
 
-    def draw_children(self, screen, d=0):
+    def draw_children(self, surface, d=0):
         if d > 0:
-            for child in self.get_children():
-                child.draw_children(screen, d - 1)
+            w = surface.get_width() / 2
+            h = surface.get_height() / 2
+            children = iter(self.get_children())
+            for j in (0, 1):
+                for i in (0, 1):
+                    children.next().draw_children(surface.subsurface(i * w, j * h, w, h),
+                                                  d - 1)
         else:
-            w = screen.get_width()
-            h = screen.get_height()
-            k = 1 << self.z
-            self.draw(screen.subsurface(self.x * w / k,
-                                        self.y * h / k,
-                                        w / k, h / k))
+            self.draw(surface)
 
 class ColorSquare(Square):
     def get_child_values(self):

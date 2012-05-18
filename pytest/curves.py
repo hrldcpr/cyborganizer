@@ -147,8 +147,8 @@ class CornerLineSquare(square.Square):
 
 
 class LineSquare(square.Square):
-    # value is a dict {i: x, j: y} or None
-    # where i and j in (']','‾','[','_') specify sides of the square
+    # value is a dict {s: x, t: y} or None
+    # where s and t in (']','‾','[','_') specify sides of the square
     # and x and y between 0.0 and 1.0 specify distance along the side
 
 
@@ -159,21 +159,38 @@ class LineSquare(square.Square):
 
         note that t will always equal s THINK ABOUT IT"""
 
+        a,b = LINES[s]
         if x < 0.5:
             return (a, s, 2*x)
         else:
             return (b, s, 2*x - 1)
 
     def get_child_values(self):
-        children = {}
+        print self.v
+        children = collections.defaultdict(dict)
         if self.v:
+            # endpoints of children's lines must coincide with parent:
             start,end = self.v.items()
-            child, s, x = parent_to_child(*start)
-            children[child] = {s: x}
-        else:
-            start = end = None
-            child = random.randrange(4)
-            children[child] = {}
-        children = range(4)
-        
+            start = parent_to_child(*start)
+            end = parent_to_child(*end)
+        elif random.random() < 0.5: # half the time
+            # lines in an empty parent must be internal and form a loop:
+            start = random.randrange(4)
+            start = (start,
+                     random.choice(s for s in NEIGHBORS[start]
+                                   if isinstance(s, unicode)),
+                     random.random())
+            # end at the same point, but in the neighboring child:
+            end = (NEIGHBORS[start[0]][start[1]],
+                   opposite(start[1])
+                   1 - start[2])
+        else: # half the time
+            # empty children for empty parent:
+            return (None,) * 4
+
+        children[start[0]][start[1]] = start[2]
+        children[end[0]][end[1]] = end[2]
+        return
+
+    def draw(self, surface):
         return

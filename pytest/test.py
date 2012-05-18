@@ -12,13 +12,15 @@ size = width, height = 640, 640
 pygame.init()
 screen = pygame.display.set_mode(size)
 
-root = curves.CornerLineSquare(0, 0, 0, ' ')
+root = curves.CornerLineSquare(' ')
 root.draw(screen)
 pygame.display.flip()
 
 d = 0
 while True:
-    for event in pygame.event.get([pygame.QUIT, pygame.KEYUP, pygame.MOUSEBUTTONUP]):
+    for event in pygame.event.get():
+        d0, root0 = d, root
+
         if event.type == pygame.QUIT:
             print 'QUIT'
             sys.exit()
@@ -35,6 +37,7 @@ while True:
             j = 2 * y / height
             root = root.get_children()[2*j + i]
 
-        print 'detail=%d' % d
-        root.draw_children(screen, d)
-        pygame.display.flip()
+        if not (d0 == d and root0 == root):
+            print 'detail=%d' % d
+            root.draw_children(screen, d)
+            pygame.display.flip()
