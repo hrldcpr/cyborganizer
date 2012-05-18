@@ -190,7 +190,12 @@ class LineSquare(square.Square):
 
         children[start[0]][start[1]] = start[2]
         children[end[0]][end[1]] = end[2]
-        return
+        child = start[0]
+        while child != end[0]:
+            # TODO randomly go through NEIGHBORS from start, stopping once in end
+            stuff
+
+        return tuple(children.get(i) for i in xrange(4))
 
     def draw(self, surface):
         return
