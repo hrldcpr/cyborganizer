@@ -213,8 +213,10 @@ class LineSquare(square.Square):
             start = parent_to_child(self.value.line.start)
             end = parent_to_child(self.value.line.end)
         elif random.random() < 0.5: # half the time
-            # lines in an empty parent must be internal and form a loop:
-            start = random_endpoint(random.randrange(4))
+            # lines in an empty parent must form a clockwise loop:
+            start = random.randrange(4)
+            # don't go counterclockwise, i.e. don't go through the side leading to UNROTATED[start]:
+            start = random_endpoint(start, taken_side=NEIGHBORS[start][UNROTATED[start]])
             end = start.get_neighbor()
         else: # half the time
             # empty children for empty parent:
@@ -254,3 +256,5 @@ class LineSquare(square.Square):
             a,b = LINES[self.value.line.end.side]
             end = interpolate(corners[a], corners[b], self.value.line.end.x)
             pygame.draw.line(surface, (255,255,255), start, end)
+            pygame.draw.circle(surface, (0,255,0), map(int, start), 2)
+            pygame.draw.circle(surface, (255,0,0), map(int, end), 2)
