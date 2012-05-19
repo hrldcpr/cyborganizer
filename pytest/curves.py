@@ -158,23 +158,22 @@ class CornerLineSquare(square.Square):
 
 
 class Point:
-    """side in (']','‾','[','_') specifies side of the square
+    """child in (0, 1, 2, 3) specifies the child id,
+    side in (']', '‾', '[', '_') specifies side of the square
     and x between 0.0 and 1.0 specifies distance along the side"""
-    def __init__(self, side, x, child=None):
-        if side not in (']','‾','[','_'):
+    def __init__(self, child, side, x):
+        if child not in (0, 1, 2, 3):
+            raise ValueError('invalid child id: %s' % child)
+        if side not in (']', '‾', '[', '_'):
             raise ValueError('side=%s not a valid side' % side)
         if x < 0 or x >= 1:
             raise ValueError('x=%s not in [0,1)' % x)
-        if child not in (None, 0, 1, 2, 3):
-            raise ValueError('invalid child id: %s' % child)
+        self.child = child
         self.side = side
         self.x = x
-        self.child = child
 
     def get_neighbor(self):
-        if self.child is None:
-            raise ValueError('non-child Points have no neighbor')
-        return Point(opposite(self.side), 1 - self.x, SIDES[self.child][self.side])
+        return Point(SIDES[self.child][self.side], opposite(self.side), 1 - self.x)
 
 class Line:
     def __init__(self, start, end):
@@ -189,14 +188,14 @@ def parent_to_child(p):
 
     a,b = LINES[p.side]
     if p.x < 0.5:
-        return Point(p.side, 2*p.x, a)
+        return Point(a, p.side, 2*p.x)
     else:
-        return Point(p.side, 2*p.x - 1, b)
+        return Point(b, p.side, 2*p.x - 1)
 
 def random_endpoint(child, taken_side=None):
     """return a random endpoint in the current child not on taken_side"""
     sides = [s for s in SIDES[child] if s != taken_side]
-    return Point(random.choice(sides), random.random(), child)
+    return Point(child, random.choice(sides), random.random())
 
 class LineSquare(square.Square):
     # self.value is an instance of Value.
