@@ -250,10 +250,19 @@ class LineSquare(square.Square):
         if self.value.line:
             corners = [(1, 1), (w, 1),
                        (1, h), (w, h)]
+            poly = []
             a,b = LINES[self.value.line.start.side]
+            poly.append(corners[a])
             start = interpolate(corners[a], corners[b], self.value.line.start.x)
+            poly.append(start)
             a,b = LINES[self.value.line.end.side]
             end = interpolate(corners[a], corners[b], self.value.line.end.x)
-            pygame.draw.line(surface, (255,255,255), start, end)
+            poly.append(end)
+            # close the polygon, clockwise:
+            while poly[0] != poly[-1]:
+                poly.append(corners[b])
+                b = ROTATED[b]
+
+            pygame.draw.polygon(surface, (255,255,255), poly)
             pygame.draw.circle(surface, (0,255,0), map(int, start), 2)
             pygame.draw.circle(surface, (255,0,0), map(int, end), 2)
