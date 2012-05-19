@@ -214,9 +214,8 @@ class LineSquare(square.Square):
             end = parent_to_child(self.value.line.end)
         elif random.random() < 0.5: # half the time
             # lines in an empty parent must form a clockwise loop:
-            start = random.randrange(4)
-            # don't go counterclockwise, i.e. don't go through the side leading to UNROTATED[start]:
-            start = random_endpoint(start, taken_side=NEIGHBORS[start][UNROTATED[start]])
+            # only possible loop is through all 4 squares, so we start clockwise from 0:
+            start = Point(0, '_', random.random())
             end = start.get_neighbor()
         else: # half the time
             # empty children for empty parent:
@@ -226,7 +225,6 @@ class LineSquare(square.Square):
         def store(p):
             children[p.child].append(p)
         store(start)
-        store(end)
         point = start
         while point.child != end.child:
             # note that this will definitely reach end,
@@ -236,6 +234,7 @@ class LineSquare(square.Square):
             store(point)
             point = point.get_neighbor()
             store(point)
+        store(end)
 
         inner = self.value.inner
         return tuple(LineSquare.Value(self.value.outer, inner,
