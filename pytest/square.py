@@ -19,8 +19,8 @@ def average_ints(avg, lo, hi, n):
 
 
 class Square(object):
-    def __init__(self, v):
-        self.v = v
+    def __init__(self, value):
+        self.value = value
         self.children = None
 
     def get_children(self):
@@ -42,13 +42,15 @@ class Square(object):
             self.draw(surface)
 
 class ColorSquare(Square):
+    # self.value is a 1-, 3-, or 4-tuple color
+
     def get_child_values(self):
         channels = [average_ints(v, 0, 255, 4)
-                    for v in self.v]
+                    for v in self.value]
         return zip(*channels)
 
     def draw(self, surface):
-        if len(self.v) == 1: # grayscale
-            surface.fill(self.v * 3)
+        if len(self.value) == 1: # grayscale
+            surface.fill(self.value * 3)
         else: # RGB or RGBA
-            surface.fill(self.v)
+            surface.fill(self.value)
