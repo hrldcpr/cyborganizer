@@ -157,76 +157,88 @@ class CornerLineSquare(square.Square):
                              corners[line[0]], corners[line[1]])
 
 
+class Point:
+    """side in (']','‾','[','_') specifies side of the square
+    and x between 0.0 and 1.0 specifies distance along the side"""
+    def __init__(self, side, x, child=None):
+        if side not in (']','‾','[','_'):
+            raise ValueError('side=%s not a valid side' % side)
+        if x < 0 or x >= 1:
+            raise ValueError('x=%s not in [0,1)' % x)
+        if child not in (None, 0, 1, 2, 3):
+            raise ValueError('invalid child id: %s' % child)
+        self.side = side
+        self.x = x
+        self.child = child
+
+    def get_neighbor(self):
+        if self.child is None:
+            raise ValueError('non-child Points have no neighbor')
+        return Point(opposite(self.side), 1 - self.x, SIDES[self.child][self.side])
+
+class Line:
+    def __init__(self, start, end):
+        if not (isinstance(start, Point) and isinstance(end, Point)):
+            raise ValueError('start=%s and end=%s are not both Points' % (start, end))
+        self.start = start
+        self.end = end
+
+def parent_to_child(p):
+    """return the child point q corresponding to p in the parent.
+    note that q.side == p.side THINK ABOUT IT"""
+
+    a,b = LINES[p.side]
+    if p.x < 0.5:
+        return Point(p.side, 2*p.x, a)
+    else:
+        return Point(p.side, 2*p.x - 1, b)
+
+def random_endpoint(child, taken_side=None):
+    """return a random endpoint in the current child not on taken_side"""
+    sides = [s for s in SIDES[child] if s != taken_side]
+    return Point(random.choice(sides), random.random(), child)
+
 class LineSquare(square.Square):
     # self.value is an instance of Value.
     class Value:
         """inner is the color to the right of line
-        and outer is the color of the rest of the square.
-        line is None or of the form (start, end)
-        where start and end are of the form (side, x)
-        where side in (']','‾','[','_') specifies side of the square
-        and x between 0.0 and 1.0 specifies distance along the side"""
-
+        and outer is the color of the rest of the square"""
         def __init__(self, outer, inner=None, line=None):
             self.outer = outer
             self.inner = inner
             self.line = line
 
-    @staticmethod
-    def parent_to_child(side, x):
-        """return (i, s, y) where i in (0,1,2,3) is the child index,
-        s in (']','‾','[','_') is the side of the child square,
-        and y between 0.0 and 1.0 is distance along child side
-
-        note that s will always equal side THINK ABOUT IT"""
-
-        a,b = LINES[side]
-        if x < 0.5:
-            return (a, side, 2*x)
-        else:
-            return (b, side, 2*x - 1)
-
-    @staticmethod
-    def random_endpoint(child, taken_side=None):
-        """return ((child, s, x), (i, t, y)), with s != taken_side,
-        which are a random endpoint in the current child
-        and the corresponding endpoint in the child's neighbor"""
-        sides = [s for s in SIDES[child] if s != taken_side]
-        a = (child, random.choice(sides), random.random())
-        b = (SIDES[a[0]][a[1]], opposite(a[1]), 1 - a[2])
-        return a,b
-
     def get_child_values(self):
         if self.value.line:
             # endpoints of children's lines must coincide with parent:
-            start,end = self.value.line
-            start = LineSquare.parent_to_child(*start)
-            end = LineSquare.parent_to_child(*end)
+            start = parent_to_child(self.value.line.start)
+            end = parent_to_child(self.value.line.end)
         elif random.random() < 0.5: # half the time
             # lines in an empty parent must be internal and form a loop:
-            start,end = LineSquare.random_endpoint(random.randrange(4))
+            start = random_endpoint(random.randrange(4))
+            end = start.get_neighbor()
         else: # half the time
             # empty children for empty parent:
             return (self.value,) * 4
 
         children = collections.defaultdict(list)
-        def store(child, side, x):
-            children[child].append((side, x))
-        store(*start)
-        child = start[0]
-        while child != end[0]:
+        def store(p):
+            children[p.child].append(p)
+        store(start)
+        store(end)
+        point = start
+        while point.child != end.child:
             # note that this will definitely reach end,
             # because there are only two internal sides per square and one will be taken,
             # so we will not loop back.
-            this_end,next_start = LineSquare.random_endpoint(child, taken_side=children[child][0][0])
-            store(*this_end)
-            store(*next_start)
-            child = next_start[0]
-        store(*end)
+            point = random_endpoint(point.child, taken_side=point.side)
+            store(point)
+            point = point.get_neighbor()
+            store(point)
 
         inner = self.value.inner
-        outer = self.value.outer
-        return tuple(LineSquare.Value(inner, outer, children.get(i))
+        return tuple(LineSquare.Value(self.value.outer, inner,
+                                      (Line(*children[i]) if i in children else None))
                      for i in xrange(4))
 
     def draw(self, surface):
@@ -236,11 +248,10 @@ class LineSquare(square.Square):
         pygame.draw.rect(surface, (64,64,64),
                          (1, 1, w, h))
         if self.value.line:
-            start,end = self.value.line
             corners = [(1, 1), (w, 1),
                        (1, h), (w, h)]
-            line = LINES[start[0]]
-            start = interpolate(corners[line[0]], corners[line[1]], start[1])
-            line = LINES[end[0]]
-            end = interpolate(corners[line[0]], corners[line[1]], end[1])
+            a,b = LINES[self.value.line.start.side]
+            start = interpolate(corners[a], corners[b], self.value.line.start.x)
+            a,b = LINES[self.value.line.end.side]
+            end = interpolate(corners[a], corners[b], self.value.line.end.x)
             pygame.draw.line(surface, (255,255,255), start, end)
