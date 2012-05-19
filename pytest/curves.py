@@ -49,13 +49,18 @@ for side,line in LINES.items():
 NEIGHBORS = collections.defaultdict(dict)
 SIDES = collections.defaultdict(dict)
 for side,line in LINES.iteritems():
-    if line:
+    if side in (']','‾','[','_'):
         a,b = line
         side = ROTATED[side]
         NEIGHBORS[a][b] = side
         SIDES[a][side] = b
         NEIGHBORS[b][a] = opposite(side)
         SIDES[b][opposite(side)] = a
+# avoid subtle defaultdict bugs:
+NEIGHBORS = dict(NEIGHBORS)
+SIDES = dict(SIDES)
+print NEIGHBORS
+print SIDES
 
 # ways to split 1-squares into 4-squares, excluding rotations which we automatically add:
 # (note that trailing spaces are just so that we can use plain backslashes :'( )
@@ -100,6 +105,8 @@ for parent,children in SPLITS.items():
         parent = ROTATED[parent]
         children = {rotate(child) for child in children}
         SPLITS[parent] |= children
+# avoid subtle defaultdict bugs:
+SPLITS = dict(SPLITS)
 
 for parent,children in SPLITS.iteritems():
     print ' _ ', '  ',
@@ -176,9 +183,11 @@ class LineSquare(square.Square):
         """return ((child, s, x), (i, t, y)), with s != taken_side,
         which are a random endpoint in the current child
         and the corresponding endpoint in the child's neighbor"""
+        print child,taken_side
         sides = [s for s in SIDES[child] if s != taken_side]
         a = (child, random.choice(sides), random.random())
         b = (SIDES[a[0]][a[1]], opposite(a[1]), 1 - a[2])
+        print a,b
         return a,b
 
     def get_child_values(self):
@@ -203,8 +212,7 @@ class LineSquare(square.Square):
             # note that this will definitely reach end,
             # because there are only two internal sides per square and one will be taken,
             # so we will not loop back.
-            this_end,next_start = LineSquare.random_endpoint(random.choice(NEIGHBORS[child]),
-                                                             taken_side=ifirst(children[child]))
+            this_end,next_start = LineSquare.random_endpoint(child, taken_side=ifirst(children[child]))
             store(*this_end)
             store(*next_start)
             child = next_start[0]
@@ -226,5 +234,5 @@ class LineSquare(square.Square):
             start = interpolate(corners[line[0]], corners[line[1]], self.v[start])
             line = LINES[end]
             end = interpolate(corners[line[0]], corners[line[1]], self.v[end])
-
+            print start,end
             pygame.draw.line(surface, (255,255,255), start, end)
