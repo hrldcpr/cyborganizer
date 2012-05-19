@@ -59,8 +59,6 @@ for side,line in LINES.iteritems():
 # avoid subtle defaultdict bugs:
 NEIGHBORS = dict(NEIGHBORS)
 SIDES = dict(SIDES)
-print NEIGHBORS
-print SIDES
 
 # ways to split 1-squares into 4-squares, excluding rotations which we automatically add:
 # (note that trailing spaces are just so that we can use plain backslashes :'( )
@@ -183,11 +181,9 @@ class LineSquare(square.Square):
         """return ((child, s, x), (i, t, y)), with s != taken_side,
         which are a random endpoint in the current child
         and the corresponding endpoint in the child's neighbor"""
-        print child,taken_side
         sides = [s for s in SIDES[child] if s != taken_side]
         a = (child, random.choice(sides), random.random())
         b = (SIDES[a[0]][a[1]], opposite(a[1]), 1 - a[2])
-        print a,b
         return a,b
 
     def get_child_values(self):
@@ -234,5 +230,4 @@ class LineSquare(square.Square):
             start = interpolate(corners[line[0]], corners[line[1]], self.v[start])
             line = LINES[end]
             end = interpolate(corners[line[0]], corners[line[1]], self.v[end])
-            print start,end
             pygame.draw.line(surface, (255,255,255), start, end)
