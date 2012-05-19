@@ -203,6 +203,8 @@ class LineSquare(square.Square):
         """inner is the color to the right of line
         and outer is the color of the rest of the square"""
         def __init__(self, outer, inner=None, line=None):
+            if any((inner, line)) and not all((inner, line)):
+                raise ValueError('squares have an inner color if and only if they have a line')
             self.outer = outer
             self.inner = inner
             self.line = line
@@ -212,11 +214,13 @@ class LineSquare(square.Square):
             # endpoints of children's lines must coincide with parent:
             start = parent_to_child(self.value.line.start)
             end = parent_to_child(self.value.line.end)
+            inner = self.value.inner
         elif random.random() < 0.5: # half the time
             # lines in an empty parent must form a clockwise loop:
             # only possible loop is through all 4 squares, so we start clockwise from 0:
             start = Point(0, '_', random.random())
             end = start.get_neighbor()
+            inner = (random.randrange(256), random.randrange(256), random.randrange(256))
         else: # half the time
             # empty children for empty parent:
             return (self.value,) * 4
@@ -236,20 +240,31 @@ class LineSquare(square.Square):
             store(point)
         store(end)
 
-        inner = self.value.inner
-        return tuple(LineSquare.Value(self.value.outer, inner,
-                                      (Line(*children[i]) if i in children else None))
-                     for i in xrange(4))
+        if len(children) < 4: # some empty children, so figure out which are inside
+            assert self.value.line # this should only happen for a nonempty parent
+            # assemble inside children in clockwise order:
+            inside = [LINES[start.side][0], start.child,
+                      end.child, LINES[end.side][1]]
+            while inside[0] != inside[-1]:
+                inside.append(ROTATED[inside[-1]])
+            inside = set(inside)
+
+        values = []
+        for i in xrange(4):
+            if i in children:
+                values.append(LineSquare.Value(self.value.outer, inner,
+                                               Line(*children[i])))
+            else:
+                values.append(LineSquare.Value(inner if i in inside else self.value.outer))
+        return tuple(values)
 
     def draw(self, surface):
-        w = surface.get_width() - 2
-        h = surface.get_height() - 2
-        surface.fill((64, 64, 128))
-        pygame.draw.rect(surface, (64,64,64),
-                         (1, 1, w, h))
+        w = surface.get_width() - 1
+        h = surface.get_height() - 1
+        surface.fill(self.value.outer)
         if self.value.line:
-            corners = [(1, 1), (w, 1),
-                       (1, h), (w, h)]
+            corners = [(0, 0), (w, 0),
+                       (0, h), (w, h)]
             poly = []
             a,b = LINES[self.value.line.start.side]
             poly.append(corners[a])
@@ -263,6 +278,4 @@ class LineSquare(square.Square):
                 poly.append(corners[b])
                 b = ROTATED[b]
 
-            pygame.draw.polygon(surface, (255,255,255), poly)
-            pygame.draw.circle(surface, (0,255,0), map(int, start), 2)
-            pygame.draw.circle(surface, (255,0,0), map(int, end), 2)
+            pygame.draw.polygon(surface, self.value.inner, poly)
