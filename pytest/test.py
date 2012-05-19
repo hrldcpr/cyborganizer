@@ -12,7 +12,7 @@ size = width, height = 640, 640
 pygame.init()
 screen = pygame.display.set_mode(size)
 
-root = curves.CornerLineSquare(' ')
+root = curves.LineSquare(None)
 root.draw(screen)
 pygame.display.flip()
 

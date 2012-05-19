@@ -45,16 +45,17 @@ for side,line in LINES.items():
             LINES[side] = line
 
 # 4-square neighbors via sides:
-# e.g. NEIGHBORS[0][1] == '[' and NEIGHBORS[0]['['] == 1
+# e.g. NEIGHBORS[0][1] == '[' and SIDES[0]['['] == 1
 NEIGHBORS = collections.defaultdict(dict)
+SIDES = collections.defaultdict(dict)
 for side,line in LINES.iteritems():
     if line:
         a,b = line
         side = ROTATED[side]
         NEIGHBORS[a][b] = side
-        NEIGHBORS[a][side] = b
+        SIDES[a][side] = b
         NEIGHBORS[b][a] = opposite(side)
-        NEIGHBORS[b][opposite(side)] = a
+        SIDES[b][opposite(side)] = a
 
 # ways to split 1-squares into 4-squares, excluding rotations which we automatically add:
 # (note that trailing spaces are just so that we can use plain backslashes :'( )
@@ -126,6 +127,10 @@ def ifirst(xs):
     for x in xs:
         return x
 
+def interpolate(p, q, x):
+    return tuple((1 - x)*a + x*b
+                 for a,b in zip(p, q))
+
 
 class CornerLineSquare(square.Square):
     # value is one of ' ', '‾', '[', '_', ']', '/', '\'
@@ -152,51 +157,74 @@ class LineSquare(square.Square):
     # where s and t in (']','‾','[','_') specify sides of the square
     # and x and y between 0.0 and 1.0 specify distance along the side
 
-
-    def parent_to_child(s, x):
-        """return (i, t, y) where i in (0,1,2,3) is the child index,
-        t in (']','‾','[','_') is the side of the child square,
+    @staticmethod
+    def parent_to_child(side, x):
+        """return (i, s, y) where i in (0,1,2,3) is the child index,
+        s in (']','‾','[','_') is the side of the child square,
         and y between 0.0 and 1.0 is distance along child side
 
-        note that t will always equal s THINK ABOUT IT"""
+        note that s will always equal side THINK ABOUT IT"""
 
-        a,b = LINES[s]
+        a,b = LINES[side]
         if x < 0.5:
-            return (a, s, 2*x)
+            return (a, side, 2*x)
         else:
-            return (b, s, 2*x - 1)
+            return (b, side, 2*x - 1)
+
+    @staticmethod
+    def random_endpoint(child, taken_side=None):
+        """return ((child, s, x), (i, t, y)), with s != taken_side,
+        which are a random endpoint in the current child
+        and the corresponding endpoint in the child's neighbor"""
+        sides = [s for s in SIDES[child] if s != taken_side]
+        a = (child, random.choice(sides), random.random())
+        b = (SIDES[a[0]][a[1]], opposite(a[1]), 1 - a[2])
+        return a,b
 
     def get_child_values(self):
-        print self.v
         children = collections.defaultdict(dict)
         if self.v:
             # endpoints of children's lines must coincide with parent:
-            start,end = self.v.items()
-            start = parent_to_child(*start)
-            end = parent_to_child(*end)
+            start,end = self.v
+            start = LineSquare.parent_to_child(start, self.v[start])
+            end = LineSquare.parent_to_child(end, self.v[end])
         elif random.random() < 0.5: # half the time
             # lines in an empty parent must be internal and form a loop:
-            start = random.randrange(4)
-            start = (start,
-                     random.choice(s for s in NEIGHBORS[start]
-                                   if isinstance(s, unicode)),
-                     random.random())
-            # end at the same point, but in the neighboring child:
-            end = (NEIGHBORS[start[0]][start[1]],
-                   opposite(start[1]),
-                   1 - start[2])
+            start,end = LineSquare.random_endpoint(random.randrange(4))
         else: # half the time
             # empty children for empty parent:
             return (None,) * 4
 
-        children[start[0]][start[1]] = start[2]
-        children[end[0]][end[1]] = end[2]
+        def store(child, side, x):
+            children[child][side] = x
+        store(*start)
         child = start[0]
         while child != end[0]:
-            # TODO randomly go through NEIGHBORS from start, stopping once in end
-            stuff
+            # note that this will definitely reach end,
+            # because there are only two internal sides per square and one will be taken,
+            # so we will not loop back.
+            this_end,next_start = LineSquare.random_endpoint(random.choice(NEIGHBORS[child]),
+                                                             taken_side=ifirst(children[child]))
+            store(*this_end)
+            store(*next_start)
+            child = next_start[0]
+        store(*end)
 
         return tuple(children.get(i) for i in xrange(4))
 
     def draw(self, surface):
-        return
+        w = surface.get_width() - 2
+        h = surface.get_height() - 2
+        surface.fill((64, 64, 128))
+        pygame.draw.rect(surface, (64,64,64),
+                         (1, 1, w, h))
+        if self.v:
+            start,end = self.v
+            corners = [(1, 1), (w, 1),
+                       (1, h), (w, h)]
+            line = LINES[start]
+            start = interpolate(corners[line[0]], corners[line[1]], self.v[start])
+            line = LINES[end]
+            end = interpolate(corners[line[0]], corners[line[1]], self.v[end])
+
+            pygame.draw.line(surface, (255,255,255), start, end)
