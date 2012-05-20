@@ -231,7 +231,8 @@ class LineSquare(square.Square):
             # only possible loop is through all 4 squares, so we start clockwise from 0:
             start = Point(0, '_', random.random())
             end = start.get_neighbor()
-            inner = (random.randrange(256), random.randrange(256), random.randrange(256))
+            inner = tuple(max(0, min(255, v + random.randint(-32, 32)))
+                          for v in self.value.outer)
         else: # half the time
             # empty children for empty parent:
             return (self.value,) * 4
@@ -270,10 +271,11 @@ class LineSquare(square.Square):
         return tuple(values)
 
     def draw(self, surface):
-        w = surface.get_width() - 1
-        h = surface.get_height() - 1
-        surface.fill(self.value.outer)
+        surface.fill(square.as_color(self.value.outer))
+
         if self.value.line:
+            w = surface.get_width() - 1
+            h = surface.get_height() - 1
             corners = [(0, 0), (w, 0),
                        (0, h), (w, h)]
             poly = []
@@ -289,4 +291,4 @@ class LineSquare(square.Square):
                 poly.append(corners[b])
                 b = ROTATED[b]
 
-            pygame.draw.polygon(surface, self.value.inner, poly)
+            pygame.draw.polygon(surface, square.as_color(self.value.inner), poly)

@@ -17,6 +17,14 @@ def average_ints(avg, lo, hi, n):
     random.shuffle(xs)
     return xs
 
+def as_color(c):
+    if len(c) == 1:
+        return c * 3
+    elif len(c) in (3, 4):
+        return c
+    else:
+        raise ValueError('bad color: %s' % c)
+
 
 class Square(object):
     def __init__(self, value):
@@ -50,7 +58,4 @@ class ColorSquare(Square):
         return zip(*channels)
 
     def draw(self, surface):
-        if len(self.value) == 1: # grayscale
-            surface.fill(self.value * 3)
-        else: # RGB or RGBA
-            surface.fill(self.value)
+        surface.fill(as_color(self.value))
