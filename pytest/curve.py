@@ -150,7 +150,10 @@ class CornerLineSquare(square.Square):
             self.line = line
 
     def get_child_values(self):
-        values = random.choice(tuple(SPLITS[self.value.line]))
+        if self.is_root: # at root, split to least empty space:
+            _,values = min((v.count(' '), v) for v in SPLITS[self.value.line])
+        else:
+            values = random.choice(tuple(SPLITS[self.value.line]))
         inner = (random.random(), random.random(), random.random())
         return tuple(CornerLineSquare.Value(self.value.outer, None if v == ' ' else inner, v)
                      for v in values)
@@ -226,12 +229,12 @@ class LineSquare(square.Square):
             start = parent_to_child(self.value.line.start)
             end = parent_to_child(self.value.line.end)
             inner = self.value.inner
-        elif random.random() < 0.5: # half the time
+        elif self.is_root or random.random() < 0.1: # probability of empty square becoming a loop
             # lines in an empty parent must form a clockwise loop:
             # only possible loop is through all 4 squares, so we start clockwise from 0:
             start = Point(0, '_', random.random())
             end = start.get_neighbor()
-            inner = tuple(max(0, min(255, v + random.randint(-32, 32)))
+            inner = tuple(random.randrange(256) # max(0, min(255, v + random.randint(-32, 32)))
                           for v in self.value.outer)
         else: # half the time
             # empty children for empty parent:
@@ -274,8 +277,8 @@ class LineSquare(square.Square):
         surface.fill(square.as_color(self.value.outer))
 
         if self.value.line:
-            w = surface.get_width() - 1
-            h = surface.get_height() - 1
+            w = surface.get_width()
+            h = surface.get_height()
             corners = [(0, 0), (w, 0),
                        (0, h), (w, h)]
             poly = []

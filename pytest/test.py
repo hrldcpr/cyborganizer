@@ -3,7 +3,7 @@ import sys
 import pygame
 
 import square
-import curves
+import curve
 
 
 size = width, height = 640, 640
@@ -12,8 +12,8 @@ size = width, height = 640, 640
 pygame.init()
 screen = pygame.display.set_mode(size)
 
-root = curves.LineSquare(curves.LineSquare.Value((128, 128, 128)))
-#root = curves.CornerLineSquare(curves.CornerLineSquare.Value((128, 128, 128)))
+root = curve.LineSquare(curve.LineSquare.Value((128, 128, 128)))
+#root = curve.CornerLineSquare(curve.CornerLineSquare.Value((128, 128, 128)))
 root.draw(screen)
 pygame.display.flip()
 

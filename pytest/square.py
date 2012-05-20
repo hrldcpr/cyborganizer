@@ -1,5 +1,7 @@
 import random
 
+import pygame
+
 
 def average_ints(avg, lo, hi, n):
     """return a list of n ints between lo and hi which average to avg"""
@@ -27,13 +29,14 @@ def as_color(c):
 
 
 class Square(object):
-    def __init__(self, value):
+    def __init__(self, value, is_root=True):
         self.value = value
+        self.is_root = is_root
         self.children = None
 
     def get_children(self):
         if not self.children:
-            self.children = tuple(self.__class__(v)
+            self.children = tuple(self.__class__(v, is_root=False)
                                   for v in self.get_child_values())
         return self.children
 
@@ -48,6 +51,9 @@ class Square(object):
                                                   d - 1)
         else:
             self.draw(surface)
+            pygame.draw.rect(surface, (128, 128, 128),
+                             (0, 0, surface.get_width() + 1, surface.get_height() + 1),
+                             1)
 
 class ColorSquare(Square):
     # self.value is a 1-, 3-, or 4-tuple color
