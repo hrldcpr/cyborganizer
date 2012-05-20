@@ -12,12 +12,13 @@ size = width, height = 640, 640
 pygame.init()
 screen = pygame.display.set_mode(size)
 
-root = curve.LineSquare(curve.LineSquare.Value((128, 128, 128)))
-#root = curve.CornerLineSquare(curve.CornerLineSquare.Value((128, 128, 128)))
-root.draw(screen)
+root = curve.LineSquare(curve.LineSquare.Value())
+#root = curve.CornerLineSquare(curve.CornerLineSquare.Value())
+
+d = 6
+root.draw_children(screen, d)
 pygame.display.flip()
 
-d = 0
 while True:
     for event in pygame.event.get():
         d0, root0 = d, root

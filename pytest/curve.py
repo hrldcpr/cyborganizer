@@ -6,6 +6,7 @@ import random
 
 import pygame
 
+import biome
 import square
 
 
@@ -142,12 +143,14 @@ class CornerLineSquare(square.Square):
         """inner is the color to the right of line
         and outer is the color of the rest of the square.
         line is one of ' ', '‾', '[', '_', ']', '/', '\\'"""
-        def __init__(self, outer, inner=None, line=' '):
+        def __init__(self, outer=biome.OCEAN, inner=None, line=' '):
             if (line == ' ' and inner) or not (line == ' ' or inner):
                 raise ValueError('squares have an inner color if and only if they have a line')
             self.outer = outer
             self.inner = inner
             self.line = line
+
+    DEFAULT = Value()
 
     def get_child_values(self):
         if self.is_root: # at root, split to least empty space:
@@ -216,26 +219,30 @@ class LineSquare(square.Square):
     class Value:
         """inner is the color to the right of line
         and outer is the color of the rest of the square"""
-        def __init__(self, outer, inner=None, line=None):
+        def __init__(self, outer=biome.OCEAN, inner=None, line=None):
             if any((inner, line)) and not all((inner, line)):
                 raise ValueError('squares have an inner color if and only if they have a line')
             self.outer = outer
             self.inner = inner
             self.line = line
 
+    DEFAULT = Value()
+
     def get_child_values(self):
+        P = 1 if self.is_root else 0.1 if self.value.outer == biome.OCEAN else 0.5
         if self.value.line:
             # endpoints of children's lines must coincide with parent:
             start = parent_to_child(self.value.line.start)
             end = parent_to_child(self.value.line.end)
             inner = self.value.inner
-        elif self.is_root or random.random() < 0.1: # probability of empty square becoming a loop
+        elif random.random() < P: # probability of empty square becoming a loop
             # lines in an empty parent must form a clockwise loop:
             # only possible loop is through all 4 squares, so we start clockwise from 0:
             start = Point(0, '_', random.random())
             end = start.get_neighbor()
-            inner = tuple(random.randrange(256) # max(0, min(255, v + random.randint(-32, 32)))
-                          for v in self.value.outer)
+            i = biome.BIOMES.index(self.value.outer)
+            inner = biome.BIOMES[max(1, min(len(biome.BIOMES) - 1,
+                                            i + random.choice((-1, 1))))]
         else: # half the time
             # empty children for empty parent:
             return (self.value,) * 4

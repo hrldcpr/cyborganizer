@@ -2,6 +2,8 @@ import random
 
 import pygame
 
+import biome
+
 
 def average_ints(avg, lo, hi, n):
     """return a list of n ints between lo and hi which average to avg"""
@@ -29,8 +31,8 @@ def as_color(c):
 
 
 class Square(object):
-    def __init__(self, value, is_root=True):
-        self.value = value
+    def __init__(self, value=None, is_root=True):
+        self.value = value or self.__class__.DEFAULT
         self.is_root = is_root
         self.children = None
 
@@ -51,12 +53,13 @@ class Square(object):
                                                   d - 1)
         else:
             self.draw(surface)
-            pygame.draw.rect(surface, (128, 128, 128),
+            pygame.draw.rect(surface, biome.OCEAN,
                              (0, 0, surface.get_width() + 1, surface.get_height() + 1),
                              1)
 
 class ColorSquare(Square):
     # self.value is a 1-, 3-, or 4-tuple color
+    DEFAULT = biome.OCEAN
 
     def get_child_values(self):
         channels = [average_ints(v, 0, 255, 4)
