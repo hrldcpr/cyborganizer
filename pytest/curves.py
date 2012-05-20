@@ -138,10 +138,22 @@ def interpolate(p, q, x):
 
 
 class CornerLineSquare(square.Square):
-    # value is one of ' ', '‾', '[', '_', ']', '/', '\'
+    class Value:
+        """inner is the color to the right of line
+        and outer is the color of the rest of the square.
+        line is one of ' ', '‾', '[', '_', ']', '/', '\\'"""
+        def __init__(self, outer, inner=None, line=' '):
+            if (line == ' ' and inner) or not (line == ' ' or inner):
+                raise ValueError('squares have an inner color if and only if they have a line')
+            self.outer = outer
+            self.inner = inner
+            self.line = line
 
     def get_child_values(self):
-        return random.choice(tuple(SPLITS[self.value]))
+        values = random.choice(tuple(SPLITS[self.value.line]))
+        inner = (random.random(), random.random(), random.random())
+        return tuple(CornerLineSquare.Value(self.value.outer, None if v == ' ' else inner, v)
+                     for v in values)
 
     def draw(self, surface):
         w = surface.get_width() - 2
@@ -149,7 +161,7 @@ class CornerLineSquare(square.Square):
         surface.fill((64, 64, 128))
         pygame.draw.rect(surface, (64,64,64),
                          (1, 1, w, h))
-        line = LINES[self.value]
+        line = LINES[self.value.line]
         if line:
             corners = [(1, 1), (w, 1),
                        (1, h), (w, h)]
@@ -167,7 +179,7 @@ class Point:
         if side not in (']', '‾', '[', '_'):
             raise ValueError('side=%s not a valid side' % side)
         if x < 0 or x >= 1:
-            raise ValueError('x=%s not in [0,1)' % x)
+            raise ValueError('x=%s not in [0, 1)' % x)
         self.child = child
         self.side = side
         self.x = x
@@ -198,7 +210,6 @@ def random_endpoint(child, taken_side=None):
     return Point(child, random.choice(sides), random.random())
 
 class LineSquare(square.Square):
-    # self.value is an instance of Value.
     class Value:
         """inner is the color to the right of line
         and outer is the color of the rest of the square"""
