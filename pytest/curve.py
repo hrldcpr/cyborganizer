@@ -184,8 +184,8 @@ class Point:
             raise ValueError('invalid child id: %s' % child)
         if side not in (']', '‾', '[', '_'):
             raise ValueError('side=%s not a valid side' % side)
-        if x < 0 or x >= 1:
-            raise ValueError('x=%s not in [0, 1)' % x)
+        if x < 0 or x > 1:
+            raise ValueError('x=%s not in [0, 1]' % x)
         self.child = child
         self.side = side
         self.x = x
@@ -213,7 +213,7 @@ def parent_to_child(p):
 def random_endpoint(child, taken_side=None):
     """return a random endpoint in the current child not on taken_side"""
     sides = [s for s in SIDES[child] if s != taken_side]
-    return Point(child, random.choice(sides), random.random())
+    return Point(child, random.choice(sides), random.randint(0, 1)) #random.random())
 
 class LineSquare(square.Square):
     class Value:
@@ -238,7 +238,7 @@ class LineSquare(square.Square):
         elif random.random() < P: # probability of empty square becoming a loop
             # lines in an empty parent must form a clockwise loop:
             # only possible loop is through all 4 squares, so we start clockwise from 0:
-            start = Point(0, '_', random.random())
+            start = Point(0, '_', random.randint(0, 1)) #random.random())
             end = start.get_neighbor()
             i = biome.BIOMES.index(self.value.outer)
             inner = biome.BIOMES[max(1, min(len(biome.BIOMES) - 1,
