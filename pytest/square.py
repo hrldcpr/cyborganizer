@@ -53,9 +53,9 @@ class Square(object):
                                                   d - 1)
         else:
             self.draw(surface)
-            pygame.draw.rect(surface, biome.OCEAN,
-                             (0, 0, surface.get_width() + 1, surface.get_height() + 1),
-                             1)
+            # pygame.draw.rect(surface, biome.OCEAN,
+            #                  (0, 0, surface.get_width() + 1, surface.get_height() + 1),
+            #                  1)
 
 class ColorSquare(Square):
     # self.value is a 1-, 3-, or 4-tuple color
