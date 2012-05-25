@@ -229,7 +229,7 @@ class LineSquare(square.Square):
     DEFAULT = Value()
 
     def get_child_values(self):
-        P = 1 if self.is_root else 0.1 if self.value.outer == biome.OCEAN else 0.5
+        P = 1 if self.is_root else 0 if self.value.outer == biome.OCEAN else 0.5
         if self.value.line:
             # endpoints of children's lines must coincide with parent:
             start = parent_to_child(self.value.line.start)
@@ -240,9 +240,10 @@ class LineSquare(square.Square):
             # only possible loop is through all 4 squares, so we start clockwise from 0:
             start = Point(0, '_', random.randint(0, 1)) #random.random())
             end = start.get_neighbor()
-            i = biome.BIOMES.index(self.value.outer)
-            inner = biome.BIOMES[max(1, min(len(biome.BIOMES) - 1,
-                                            i + random.choice((-1, 1))))]
+            # i = biome.BIOMES.index(self.value.outer)
+            # inner = biome.BIOMES[max(1, min(len(biome.BIOMES) - 1,
+            #                                 i + random.choice((-1, 1))))]
+            inner = random.choice(biome.BIOMES[1:])
         else: # half the time
             # empty children for empty parent:
             return (self.value,) * 4
@@ -281,11 +282,16 @@ class LineSquare(square.Square):
         return tuple(values)
 
     def draw(self, surface):
-        surface.fill(square.as_color(self.value.outer))
+        if self.value.outer in biome.IMAGES:
+            surface.blit(biome.IMAGES[self.value.outer], (0, 0))
+        else:
+            surface.fill(square.as_color(self.value.outer))
 
         if self.value.line:
-            w = surface.get_width()
-            h = surface.get_height()
+            mask = surface.copy()
+            mask.fill((0, 0, 0))
+            w = mask.get_width()
+            h = mask.get_height()
             corners = [(0, 0), (w, 0),
                        (0, h), (w, h)]
             poly = []
@@ -301,4 +307,15 @@ class LineSquare(square.Square):
                 poly.append(corners[b])
                 b = ROTATED[b]
 
-            pygame.draw.polygon(surface, square.as_color(self.value.inner), poly)
+            pygame.draw.polygon(mask, (255, 255, 255), poly)
+
+            # remove inner from outer:
+            surface.blit(mask, (0, 0), special_flags=pygame.BLEND_SUB)
+
+            # fill inner with image or color:
+            if self.value.inner in biome.IMAGES:
+                mask.blit(biome.IMAGES[self.value.inner], (0, 0), special_flags=pygame.BLEND_MULT)
+            else:
+                mask.fill(square.as_color(self.value.inner), special_flags=pygame.BLEND_MULT)
+            # add inner to outer:
+            surface.blit(mask, (0, 0), special_flags=pygame.BLEND_ADD)
