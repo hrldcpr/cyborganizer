@@ -31,14 +31,14 @@ def as_color(c):
 
 
 class Square(object):
-    def __init__(self, value=None, is_root=True):
+    def __init__(self, value=None, parent=None):
         self.value = value or self.__class__.DEFAULT
-        self.is_root = is_root
+        self.parent = parent
         self.children = None
 
     def get_children(self):
         if not self.children:
-            self.children = tuple(self.__class__(v, is_root=False)
+            self.children = tuple(self.__class__(v, self)
                                   for v in self.get_child_values())
         return self.children
 

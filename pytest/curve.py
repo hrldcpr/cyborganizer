@@ -153,7 +153,7 @@ class CornerLineSquare(square.Square):
     DEFAULT = Value()
 
     def get_child_values(self):
-        if self.is_root: # at root, split to least empty space:
+        if not self.parent: # at root, split to least empty space:
             _,values = min((v.count(' '), v) for v in SPLITS[self.value.line])
         else:
             values = random.choice(tuple(SPLITS[self.value.line]))
@@ -229,7 +229,7 @@ class LineSquare(square.Square):
     DEFAULT = Value()
 
     def get_child_values(self):
-        P = 1 if self.is_root else 0 if self.value.outer == biome.OCEAN else 0.5
+        P = 1 if not self.parent else 0 if self.value.outer == biome.OCEAN else 0.5
         if self.value.line:
             # endpoints of children's lines must coincide with parent:
             start = parent_to_child(self.value.line.start)
