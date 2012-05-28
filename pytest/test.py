@@ -2,8 +2,9 @@ import sys
 
 import pygame
 
-import square
+import biome
 import curve
+import square
 
 
 size = width, height = 640, 640
@@ -15,11 +16,6 @@ screen = pygame.display.set_mode(size)
 root = curve.LineSquare(curve.LineSquare.Value())
 #root = curve.CornerLineSquare(curve.CornerLineSquare.Value())
 
-z = 0
-d = 5
-root.draw_children(screen, d)
-pygame.display.flip()
-
 def zoom_in(x, y):
     global root
     if root.parent:
@@ -30,6 +26,18 @@ def zoom_out(x, y):
     i = 2 * x / width
     j = 2 * y / height
     root = root.get_children()[2*j + i]
+
+def update_detail():
+    print 'detail=%d' % d
+    k = 1 << d
+    assert width % k == 0 and height % k == 0, "width=%d and height=%d must be divisible by %d" % (width, height, k)
+    biome.scale_images(width / k, height / k)
+
+z = 0
+d = 5
+update_detail()
+root.draw_children(screen, d)
+pygame.display.flip()
 
 while True:
     for event in pygame.event.get():
@@ -44,7 +52,8 @@ while True:
                 if d > 0: d -= 1
             elif event.key == ord('='):
                 d += 1
-            if d != d0: print 'detail=%d' % d
+            if d != d0:
+                update_detail()
 
         elif event.type == pygame.MOUSEBUTTONUP and event.button == 1:
             zoom_out(*event.pos)

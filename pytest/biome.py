@@ -11,7 +11,15 @@ SNOW = (224, 224, 255)
 
 BIOMES = [OCEAN, MOUNTAIN, SNOW]
 
-IMAGES = {OCEAN: pygame.image.load('images/water.1.small.png'),
-          MOUNTAIN: pygame.image.load('images/mountain.1.small.png'),
-          SNOW: pygame.image.load('images/snow.1.small.png'),
-          }
+_IMAGES = {OCEAN: pygame.image.load('images/water.1.medium.png'),
+           MOUNTAIN: pygame.image.load('images/mountain.1.medium.png'),
+           SNOW: pygame.image.load('images/snow.1.medium.png'),
+           }
+
+IMAGES = {}
+def scale_images(width, height):
+    print 'images=%dpx x %dpx' % (width, height)
+    for biome,large in _IMAGES.iteritems():
+        scaled = large.copy().subsurface(0, 0, width, height) # wasteful but keeps same color modes...
+        pygame.transform.scale(large, (width, height), scaled)
+        IMAGES[biome] = scaled
