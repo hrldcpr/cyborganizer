@@ -16,12 +16,12 @@ screen = pygame.display.set_mode(size)
 root = curve.LineSquare(curve.LineSquare.Value())
 #root = curve.CornerLineSquare(curve.CornerLineSquare.Value())
 
-def zoom_in(x, y):
+def zoom_out(x, y):
     global root
     if root.parent:
         root = root.parent
 
-def zoom_out(x, y):
+def zoom_in(x, y):
     global root
     i = 2 * x / width
     j = 2 * y / height
@@ -56,19 +56,19 @@ while True:
                 update_detail()
 
         elif event.type == pygame.MOUSEBUTTONUP and event.button == 1:
-            zoom_out(*event.pos)
+            zoom_in(*event.pos)
 
         elif event.type == pygame.MOUSEBUTTONDOWN:
             if event.button == 5:
                 z -= 1
                 if z < 0:
                     z += 4
-                    zoom_in(*event.pos)
+                    zoom_out(*event.pos)
             elif event.button == 4:
                 z += 1
                 if z > 4:
                     z -= 4
-                    zoom_out(*event.pos)
+                    zoom_in(*event.pos)
 
         if d != d0 or root != root0:
             root.draw_children(screen, d)
