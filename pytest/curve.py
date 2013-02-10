@@ -50,7 +50,7 @@ for side,line in LINES.items():
 NEIGHBORS = collections.defaultdict(dict)
 SIDES = collections.defaultdict(dict)
 for side,line in LINES.iteritems():
-    if side in (']','‾','[','_'):
+    if side in (']', '‾', '[', '_'):
         a,b = line
         side = ROTATED[side]
         NEIGHBORS[a][b] = side
