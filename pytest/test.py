@@ -13,8 +13,14 @@ size = width, height = 640, 640
 pygame.init()
 screen = pygame.display.set_mode(size)
 
-root = curve.LineSquare(curve.LineSquare.Value())
-#root = curve.CornerLineSquare(curve.CornerLineSquare.Value())
+root = curve.LineSquare()
+#root = curve.CornerLineSquare()
+
+# TODO #1 mouse-centered zoom
+#      can involve any neighbor, so need to draw from 2 levels higher but viewport will only intersect with some of it
+# TODO #2 non-integer zoom
+#      round up and draw at that level, then scale. keeping resolution from "jumping" seems quite tricky...
+
 
 def zoom_out(x, y):
     global root
