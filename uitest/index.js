@@ -1,4 +1,6 @@
 $(function() {
+//////////////
+
 
 function zoom(scale, fleeting) {
     var scale0 = $('#world').data('scale') || 1;
@@ -14,10 +16,14 @@ $('svg').on('mousewheel', function(event, delta) {
     zoom(Math.pow(1.01, delta));
 });
 
-$('svg').hammer({transform_always_block: true}).on('transform', function(event) {
+$('svg').hammer({
+    transform_always_block: true
+}).on('transform', function(event) {
     zoom(event.gesture.scale, true);
 }).on('transformend', function(event) {
     zoom(event.gesture.scale, false);
 });
 
+
+///
 });
