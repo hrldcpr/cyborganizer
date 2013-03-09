@@ -14,21 +14,18 @@ function svgMatrix(matrix) {
 }
 
 function scaleMatrix(scale) {
-    return [[scale, 0, 0],
-            [0, scale, 0],
-            [0, 0, 1]];
+    return numeric.diag([scale, scale, 1]);
 }
 
 function getScale(matrix) {
-    // TODO generalize this!
-    return matrix[0][0];
+    // the x-coordinate of a vector is scaled by this amount,
+    // and we always scale uniformly, so this is the scale:
+    return numeric.norm2([matrix[0][0], matrix[1][0]]);
 }
 
-var transformation = [[1, 0, 0],
-                      [0, 1, 0],
-                      [0, 0, 1]];
 
 var MAX_ZOOM = 100, MIN_ZOOM = -MAX_ZOOM;
+var transformation = numeric.identity(3);
 var deepest = 0;
 function zoom(scale, fleeting) {
     var world = $('#world');
