@@ -6,17 +6,39 @@ function svg(tag) {
     return $(document.createElementNS('http://www.w3.org/2000/svg', tag));
 }
 
+function svgMatrix(matrix) {
+    return 'matrix('
+        + matrix[0][0] + ' ' + matrix[1][0] + ' '
+        + matrix[0][1] + ' ' + matrix[1][1] + ' '
+        + matrix[0][2] + ' ' + matrix[1][2] + ')';
+}
+
+function scaleMatrix(scale) {
+    return [[scale, 0, 0],
+            [0, scale, 0],
+            [0, 0, 1]];
+}
+
+function getScale(matrix) {
+    // TODO generalize this!
+    return matrix[0][0];
+}
+
+var transformation = [[1, 0, 0],
+                      [0, 1, 0],
+                      [0, 0, 1]];
+
 var MAX_ZOOM = 100, MIN_ZOOM = -MAX_ZOOM;
 var deepest = 0;
 function zoom(scale, fleeting) {
     var world = $('#world');
-    scale *= world.data('scale') || 1;
-    var zoom = Math.log(scale) / Math.LN2;
+    var transform = numeric.dot(transformation, scaleMatrix(scale));
+    var zoom = Math.log(getScale(transform)) / Math.LN2;
 
     if (zoom < MIN_ZOOM || zoom > MAX_ZOOM) return;
 
-    world.attr('transform', 'scale(' + scale + ',' + scale + ')');
-    if (!fleeting) world.data('scale', scale)
+    world.attr('transform', svgMatrix(transform));
+    if (!fleeting) transformation = transform;
 
     while (deepest <= zoom + 2) {
         svg('rect')
