@@ -17,17 +17,27 @@ function scaleMatrix(scale) {
     return numeric.diag([scale, scale, 1]);
 }
 
+// we only scale uniformly and translate, so our transformation is always of the form:
+// [[k 0 dx]
+//  [0 k dy]
+//  [0 0  1]]
 function getScale(matrix) {
-    // the x-coordinate of a vector is scaled by this amount,
-    // and we always scale uniformly, so this is the scale:
-    return numeric.norm2([matrix[0][0], matrix[1][0]]);
+    return matrix[0][0];
+}
+function getXTranslation(matrix) {
+    return matrix[0][2];
+}
+function getYTranslation(matrix) {
+    return matrix[1][2];
 }
 
 
 var MAX_ZOOM = 100, MIN_ZOOM = -MAX_ZOOM;
 var transformation = numeric.identity(3);
 var deepest = 0;
-function zoom(scale, fleeting) {
+function zoom(x, y, scale, fleeting) {
+    console.log('x=' + x + ' y=' + y);
+
     var world = $('#world');
     var transform = numeric.dot(transformation, scaleMatrix(scale));
     var zoom = Math.log(getScale(transform)) / Math.LN2;
@@ -50,17 +60,20 @@ function zoom(scale, fleeting) {
 
 $(function() {
 
-    zoom(1);
+    zoom(0, 0, 1);
 
     $('svg').on('mousewheel', function(event, delta) {
         event.preventDefault();
-        zoom(Math.pow(1.01, delta));
+        var parent = $(this).parent().offset();
+        zoom(event.pageX - parent.left,
+             event.pageY - parent.top,
+             Math.pow(1.01, delta));
     }).hammer({
         transform_always_block: true
     }).on('transform', function(event) {
-        zoom(event.gesture.scale, true);
+        zoom(0, 0, event.gesture.scale, true);
     }).on('transformend', function(event) {
-        zoom(event.gesture.scale, false);
+        zoom(0, 0, event.gesture.scale, false);
     });
 
 });
