@@ -7,27 +7,38 @@ var svg, transformation; // set onready
 function createSVG(tag) {
     return $(document.createElementNS('http://www.w3.org/2000/svg', tag));
 }
+
 function createSVGPoint(x, y) {
     var point = svg.createSVGPoint();
     point.x = x;
     point.y = y;
     return point;
 }
+
 function transformSVG(node, matrix) {
     node.attr('transform', 'matrix('
               + matrix.a + ' ' + matrix.b + ' '
               + matrix.c + ' ' + matrix.d + ' '
               + matrix.e + ' ' + matrix.f + ')');
 }
+
 function getScale(matrix) {
     return matrix.a; // we only do translation and uniform scaling
+}
+
+function getPixelTransformation() {
+    return svg.getCTM().multiply(transformation).inverse();
+}
+
+function fromPixel(pixel) {
+    return pixel.matrixTransform(getPixelTransformation());
 }
 
 
 var MAX_ZOOM = 100, MIN_ZOOM = -MAX_ZOOM;
 var deepest = 0;
 function zoom(x, y, scale, fleeting) {
-    var center = createSVGPoint(x, y).matrixTransform(svg.getCTM().multiply(transformation).inverse());
+    var center = fromPixel(createSVGPoint(x, y));
     console.log(center);
     var world = $('#world');
     var transform = transformation
