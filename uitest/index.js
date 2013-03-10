@@ -48,7 +48,8 @@ function zoom(x, y, scale, fleeting) {
     var world = $('#world');
 
     var center = createSVGPoint(x, y).matrixTransform(world[0].getCTM().inverse());
-    var x = center.x, y = center.y;
+    x = center.x;
+    y = center.y;
 
     var fleetingTransformation = transformation
         .translate(x, y).scale(scale).translate(-x, -y);
