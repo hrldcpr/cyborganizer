@@ -28,7 +28,7 @@ function getScale(matrix) {
 
 
 var squares = {};
-function getSquare(x, y, z) {
+function createSquare(x, y, z) {
     var key = x + ',' + y + ',' + z;
     if (!squares[key]) {
         var scale = Math.pow(2, z);
@@ -40,7 +40,6 @@ function getSquare(x, y, z) {
             .attr('fill', z % 2 ? 'white' : 'red')
             .appendTo('#world');
     }
-    return squares[key];
 }
 
 
@@ -63,7 +62,7 @@ function zoom(x, y, scale, fleeting) {
     var x = center.x, y = center.y;
     for (var z = 0; z <= zoom + 2; z++) {
         var scale = Math.pow(2, z);
-        getSquare(Math.floor(x * scale), Math.floor(y * scale), z);
+        createSquare(Math.floor(x * scale), Math.floor(y * scale), z);
     }
 }
 
