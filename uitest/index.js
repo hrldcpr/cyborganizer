@@ -2,53 +2,47 @@
 //************************************//
 
 
-function svg(tag) {
+var svg, transformation; // set onready
+
+function createSVG(tag) {
     return $(document.createElementNS('http://www.w3.org/2000/svg', tag));
 }
-
-function svgMatrix(matrix) {
-    return 'matrix('
-        + matrix[0][0] + ' ' + matrix[1][0] + ' '
-        + matrix[0][1] + ' ' + matrix[1][1] + ' '
-        + matrix[0][2] + ' ' + matrix[1][2] + ')';
+function createSVGPoint(x, y) {
+    var point = svg.createSVGPoint();
+    point.x = x;
+    point.y = y;
+    return point;
 }
-
-function scaleMatrix(scale) {
-    return numeric.diag([scale, scale, 1]);
+function transformSVG(node, matrix) {
+    node.attr('transform', 'matrix('
+              + matrix.a + ' ' + matrix.b + ' '
+              + matrix.c + ' ' + matrix.d + ' '
+              + matrix.e + ' ' + matrix.f + ')');
 }
-
-// we only scale uniformly and translate, so our transformation is always of the form:
-// [[k 0 dx]
-//  [0 k dy]
-//  [0 0  1]]
 function getScale(matrix) {
-    return matrix[0][0];
-}
-function getXTranslation(matrix) {
-    return matrix[0][2];
-}
-function getYTranslation(matrix) {
-    return matrix[1][2];
+    return matrix.a; // we only do translation and uniform scaling
 }
 
 
 var MAX_ZOOM = 100, MIN_ZOOM = -MAX_ZOOM;
-var transformation = numeric.identity(3);
 var deepest = 0;
 function zoom(x, y, scale, fleeting) {
-    console.log('x=' + x + ' y=' + y);
-
+    var center = createSVGPoint(x, y).matrixTransform(svg.getCTM().multiply(transformation).inverse());
+    console.log(center);
     var world = $('#world');
-    var transform = numeric.dot(transformation, scaleMatrix(scale));
+    var transform = transformation
+        .translate(center.x, center.y)
+        .scale(scale)
+        .translate(-center.x, -center.y);
     var zoom = Math.log(getScale(transform)) / Math.LN2;
 
     if (zoom < MIN_ZOOM || zoom > MAX_ZOOM) return;
 
-    world.attr('transform', svgMatrix(transform));
+    transformSVG(world, transform);
     if (!fleeting) transformation = transform;
 
     while (deepest <= zoom + 2) {
-        svg('rect')
+        createSVG('rect')
             .attr('width', 1 / Math.pow(2, deepest))
             .attr('height', 1 / Math.pow(2, deepest))
             .attr('fill', deepest % 2 ? 'white' : 'red')
@@ -59,10 +53,19 @@ function zoom(x, y, scale, fleeting) {
 
 
 $(function() {
+    svg = $('#svg')[0];
+    transformation = svg.createSVGMatrix();
 
     zoom(0, 0, 1);
 
-    $('svg').on('mousewheel', function(event, delta) {
+    $(svg).on('mouseup', function(event) {
+        var parent = $(this).parent().offset();
+        console.log(event);
+        var x = event.pageX - parent.left;
+        var y = event.pageY - parent.top;
+        var center = createSVGPoint(x, y).matrixTransform(svg.getCTM().inverse());
+        console.log(center);
+    }).on('mousewheel', function(event, delta) {
         event.preventDefault();
         var parent = $(this).parent().offset();
         zoom(event.pageX - parent.left,
@@ -75,7 +78,6 @@ $(function() {
     }).on('transformend', function(event) {
         zoom(0, 0, event.gesture.scale, false);
     });
-
 });
 
 
