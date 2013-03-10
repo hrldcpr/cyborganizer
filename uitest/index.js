@@ -26,39 +26,44 @@ function getScale(matrix) {
     return matrix.a; // we only do translation and uniform scaling
 }
 
-function getPixelTransformation() {
-    return svg.getCTM().multiply(transformation).inverse();
-}
 
-function fromPixel(pixel) {
-    return pixel.matrixTransform(getPixelTransformation());
+var squares = {};
+function getSquare(x, y, z) {
+    var key = x + ',' + y + ',' + z;
+    if (!squares[key]) {
+        var scale = Math.pow(2, z);
+        squares[key] = createSVG('rect')
+            .attr('x', x / scale)
+            .attr('y', y / scale)
+            .attr('width', 1 / scale)
+            .attr('height', 1 / scale)
+            .attr('fill', z % 2 ? 'white' : 'red')
+            .appendTo('#world');
+    }
+    return squares[key];
 }
 
 
 var MAX_ZOOM = 100, MIN_ZOOM = -MAX_ZOOM;
-var deepest = 0;
 function zoom(x, y, scale, fleeting) {
-    var center = fromPixel(createSVGPoint(x, y));
-    console.log(center);
     var world = $('#world');
-    var transform = transformation
-        .translate(center.x, center.y)
-        .scale(scale)
-        .translate(-center.x, -center.y);
-    var zoom = Math.log(getScale(transform)) / Math.LN2;
+
+    var center = createSVGPoint(x, y).matrixTransform(world[0].getCTM().inverse());
+    var x = center.x, y = center.y;
+
+    var fleetingTransformation = transformation
+        .translate(x, y).scale(scale).translate(-x, -y);
+    var zoom = Math.log(getScale(fleetingTransformation)) / Math.LN2;
 
     if (zoom < MIN_ZOOM || zoom > MAX_ZOOM) return;
 
-    transformSVG(world, transform);
-    if (!fleeting) transformation = transform;
+    transformSVG(world, fleetingTransformation);
+    if (!fleeting) transformation = fleetingTransformation;
 
-    while (deepest <= zoom + 2) {
-        createSVG('rect')
-            .attr('width', 1 / Math.pow(2, deepest))
-            .attr('height', 1 / Math.pow(2, deepest))
-            .attr('fill', deepest % 2 ? 'white' : 'red')
-            .appendTo(world);
-        deepest++;
+    var x = center.x, y = center.y;
+    for (var z = 0; z <= zoom + 2; z++) {
+        var scale = Math.pow(2, z);
+        getSquare(Math.floor(x * scale), Math.floor(y * scale), z);
     }
 }
 
@@ -69,14 +74,7 @@ $(function() {
 
     zoom(0, 0, 1);
 
-    $(svg).on('mouseup', function(event) {
-        var parent = $(this).parent().offset();
-        console.log(event);
-        var x = event.pageX - parent.left;
-        var y = event.pageY - parent.top;
-        var center = createSVGPoint(x, y).matrixTransform(svg.getCTM().inverse());
-        console.log(center);
-    }).on('mousewheel', function(event, delta) {
+    $(svg).on('mousewheel', function(event, delta) {
         event.preventDefault();
         var parent = $(this).parent().offset();
         zoom(event.pageX - parent.left,
