@@ -76,14 +76,11 @@ function createSquare(x, y, z, line) {
             .attr('y1', y/scale + line[0][1])
             .attr('x2', x/scale + line[1][0])
             .attr('y2', y/scale + line[1][1])
-            .attr('stroke-width', 0.01 / scale)
+            .attr('stroke-width', 0.05 / scale)
             .attr('stroke', 'red')
             .appendTo('#world');
     }
 }
-
-createSquare(0, 0, 0, ' ');
-
 
 var MAX_ZOOM = 100, MIN_ZOOM = -MAX_ZOOM;
 function zoom(x, y, scale, fleeting) {
@@ -96,9 +93,16 @@ function zoom(x, y, scale, fleeting) {
     transformSVG($('#world'), fleetingTransformation);
     if (!fleeting) transformation = fleetingTransformation;
 
-    for (var z = 0; z <= zoom; z++) {
-        var scale = Math.pow(2, z);
-        getSquare(Math.floor(x * scale), Math.floor(y * scale), z);
+    // draw everything subzoom levels beyond current zoom:
+    var subzoom = 4;
+    var n = Math.pow(2, subzoom);
+    zoom = Math.floor(zoom) + subzoom;
+    var scale = Math.pow(2, zoom);
+    x = Math.floor(x * scale);
+    y = Math.floor(y * scale);
+    for (var j = 0; j < n; j++) {
+        for (var i = 0; i < n; i++)
+            getSquare(x + i, y + j, zoom);
     }
 }
 
@@ -107,6 +111,7 @@ $(function() {
     svg = $('#svg')[0];
     transformation = svg.createSVGMatrix();
 
+    createSquare(0, 0, 0, ' ');
     zoom(0, 0, 1);
 
     $(svg).on('mousewheel', function(event, delta) {
