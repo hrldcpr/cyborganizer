@@ -63,7 +63,7 @@ function createSquare(x, y, z, line) {
         .attr('y', y / scale)
         .attr('width', 1 / scale)
         .attr('height', 1 / scale)
-        .attr('fill', 'blue')
+        .attr('fill', 'gray')
         .appendTo('#world');
 
     line = LINES[line];
@@ -77,7 +77,7 @@ function createSquare(x, y, z, line) {
             .attr('x2', x/scale + line[1][0])
             .attr('y2', y/scale + line[1][1])
             .attr('stroke-width', 0.05 / scale)
-            .attr('stroke', 'red')
+            .attr('stroke', 'turquoise')
             .appendTo('#world');
     }
 }
