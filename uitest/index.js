@@ -31,19 +31,58 @@ function fromPixel(x, y) {
 }
 
 var squares = {};
-function createSquare(x, y, z) {
+function getSquare(x, y, z) {
+    var scale = Math.pow(2, z);
+    if (x < 0 || x >= scale || y < 0 || y >= scale || z < 0) return;
+
     var key = x + ',' + y + ',' + z;
     if (!squares[key]) {
-        var scale = Math.pow(2, z);
-        squares[key] = createSVG('rect')
-            .attr('x', x / scale)
-            .attr('y', y / scale)
-            .attr('width', 1 / scale)
-            .attr('height', 1 / scale)
-            .attr('fill', z % 2 ? 'white' : 'red')
+        // we will create all four subsquares of parent, so move to top-left subsquare:
+        x = 2 * Math.floor(x / 2);
+        y = 2 * Math.floor(y / 2);
+        var parent = getSquare(x / 2, y / 2, z - 1);
+        var children = SPLITS[parent];
+        var child = children[Math.floor(children.length * Math.random())];
+        var k = 0;
+        for (var j = 0; j < 2; j++) {
+            for (var i = 0; i < 2; i++)
+                createSquare(x + i, y + j, z, child[k++]);
+        }
+    }
+    return squares[key];
+}
+
+function createSquare(x, y, z, line) {
+    var key = x + ',' + y + ',' + z;
+    if (squares[key]) { console.log('createSquare called on existing key ' + key); return; }
+    squares[key] = line;
+
+    var scale = Math.pow(2, z);
+    createSVG('rect')
+        .attr('x', x / scale)
+        .attr('y', y / scale)
+        .attr('width', 1 / scale)
+        .attr('height', 1 / scale)
+        .attr('fill', 'blue')
+        .appendTo('#world');
+
+    line = LINES[line];
+    if (line) {
+        var corners = [[0, 0], [1/scale, 0],
+                       [0, 1/scale], [1/scale, 1/scale]];
+        line = [corners[line[0]], corners[line[1]]];
+        createSVG('line')
+            .attr('x1', x/scale + line[0][0])
+            .attr('y1', y/scale + line[0][1])
+            .attr('x2', x/scale + line[1][0])
+            .attr('y2', y/scale + line[1][1])
+            .attr('stroke-width', 0.01 / scale)
+            .attr('stroke', 'red')
             .appendTo('#world');
     }
 }
+
+createSquare(0, 0, 0, ' ');
 
 
 var MAX_ZOOM = 100, MIN_ZOOM = -MAX_ZOOM;
@@ -59,7 +98,7 @@ function zoom(x, y, scale, fleeting) {
 
     for (var z = 0; z <= zoom; z++) {
         var scale = Math.pow(2, z);
-        createSquare(Math.floor(x * scale), Math.floor(y * scale), z);
+        getSquare(Math.floor(x * scale), Math.floor(y * scale), z);
     }
 }
 
