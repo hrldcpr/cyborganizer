@@ -30,6 +30,16 @@ function fromPixel(x, y) {
     return createSVGPoint(x, y).matrixTransform($('#world')[0].getScreenCTM().inverse());
 }
 
+function colorComponent(x) {
+    x = Math.round(255 * x).toString(16);
+    if (x.length < 2) x = '0' + x;
+    return x;
+}
+
+function colorString(r, g, b) {
+    return '#' + colorComponent(r) + colorComponent(g) + colorComponent(b);
+}
+
 var squares = {};
 function getSquare(x, y, z) {
     var scale = Math.pow(2, z);
@@ -41,21 +51,28 @@ function getSquare(x, y, z) {
         x = 2 * Math.floor(x / 2);
         y = 2 * Math.floor(y / 2);
         var parent = getSquare(x / 2, y / 2, z - 1);
-        var children = SPLITS[parent];
-        var child = children[Math.floor(children.length * Math.random())];
+
+        var splits = SPLITS[parent.line];
+        var split = splits[Math.floor(splits.length * Math.random())];
+
+        var inner = parent.inner || colorString(Math.random(), Math.random(), Math.random());
+
         var k = 0;
         for (var j = 0; j < 2; j++) {
-            for (var i = 0; i < 2; i++)
-                createSquare(x + i, y + j, z, child[k++]);
+            for (var i = 0; i < 2; i++) {
+                var line = split[k++];
+                createSquare(x + i, y + j, z, line, parent.outer, inner);
+            }
         }
     }
     return squares[key];
 }
 
-function createSquare(x, y, z, line) {
+function createSquare(x, y, z, line, outer, inner) {
     var key = x + ',' + y + ',' + z;
     if (squares[key]) { console.log('createSquare called on existing key ' + key); return; }
-    squares[key] = line;
+    squares[key] = {line: line,
+                    outer: outer};
 
     var scale = Math.pow(2, z);
     createSVG('rect')
@@ -63,11 +80,14 @@ function createSquare(x, y, z, line) {
         .attr('y', y / scale)
         .attr('width', 1 / scale)
         .attr('height', 1 / scale)
-        .attr('fill', 'gray')
+        .attr('fill', outer)
         .appendTo('#world');
 
     line = LINES[line];
     if (line) {
+        if (!inner) { console.log('squares should have an inner color if and only if they have a line'); return; }
+        squares[key].inner = inner;
+
         var corners = [[0, 0], [1/scale, 0],
                        [0, 1/scale], [1/scale, 1/scale]];
         line = [corners[line[0]], corners[line[1]]];
@@ -77,7 +97,7 @@ function createSquare(x, y, z, line) {
             .attr('x2', x/scale + line[1][0])
             .attr('y2', y/scale + line[1][1])
             .attr('stroke-width', 0.05 / scale)
-            .attr('stroke', 'turquoise')
+            .attr('stroke', inner)
             .appendTo('#world');
     }
 }
