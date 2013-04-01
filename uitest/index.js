@@ -26,8 +26,18 @@ function getScale(matrix) {
     return matrix.a; // we only do translation and uniform scaling
 }
 
+function getTranslation(matrix) {
+    return createSVGPoint(matrix.e, matrix.f); // we only do translation and uniform scaling
+}
+
 function fromPixel(x, y) {
     return createSVGPoint(x, y).matrixTransform($('#world')[0].getScreenCTM().inverse());
+}
+
+function fromPixelDelta(dx, dy) {
+    var zero = fromPixel(0, 0);
+    var delta = fromPixel(dx, dy);
+    return createSVGPoint(delta.x - zero.x, delta.y - zero.y);
 }
 
 var squares = {};
@@ -83,17 +93,7 @@ function createSquare(x, y, z, square) {
     }
 }
 
-var MAX_ZOOM = 100, MIN_ZOOM = -MAX_ZOOM;
-function zoom(x, y, scale, fleeting) {
-    var fleetingTransformation = transformation
-        .translate(x, y).scale(scale).translate(-x, -y);
-    var zoom = Math.log(getScale(fleetingTransformation)) / Math.LN2;
-
-    if (zoom < MIN_ZOOM || zoom > MAX_ZOOM) return;
-
-    transformSVG($('#world'), fleetingTransformation);
-    if (!fleeting) transformation = fleetingTransformation;
-
+function draw(x, y, zoom) {
     // draw everything subzoom levels beyond current zoom:
     var subzoom = 4;
     var n = Math.pow(2, subzoom);
@@ -105,6 +105,31 @@ function zoom(x, y, scale, fleeting) {
         for (var i = 0; i < n; i++)
             getSquare(x + i, y + j, zoom);
     }
+}
+
+function translate(dx, dy, fleeting) {
+    var fleetingTransformation = transformation.translate(dx, dy);
+
+    transformSVG($('#world'), fleetingTransformation);
+    if (!fleeting) transformation = fleetingTransformation;
+
+    var translation = getTranslation(fleetingTransformation);
+    var scale = getScale(fleetingTransformation);
+    draw(-translation.x / scale, -translation.y / scale, Math.log(scale) / Math.LN2);
+}
+
+var MAX_ZOOM = 100, MIN_ZOOM = -MAX_ZOOM;
+function zoom(x, y, scale, fleeting) {
+    var fleetingTransformation = transformation
+        .translate(x, y).scale(scale).translate(-x, -y);
+    var zoom = Math.log(getScale(fleetingTransformation)) / Math.LN2;
+
+    if (zoom < MIN_ZOOM || zoom > MAX_ZOOM) return;
+
+    transformSVG($('#world'), fleetingTransformation);
+    if (!fleeting) transformation = fleetingTransformation;
+
+    draw(x, y, zoom);
 }
 
 
@@ -120,11 +145,21 @@ $(function() {
         var point = fromPixel(event.clientX, event.clientY);
         zoom(point.x, point.y, Math.pow(1.01, delta));
     }).hammer({
+        drag_block_horizontal: true,
+        drag_block_vertical: true,
         transform_always_block: true
+    }).on('drag', function(event) {
+        var delta = fromPixelDelta(event.gesture.deltaX, event.gesture.deltaY);
+        translate(delta.x, delta.y, true);
+    }).on('dragend', function(event) {
+        var delta = fromPixelDelta(event.gesture.deltaX, event.gesture.deltaY);
+        translate(delta.x, delta.y, false);
     }).on('transform', function(event) {
-        zoom(0, 0, event.gesture.scale, true);
+        var point = fromPixel(event.gesture.center.pageX, event.gesture.center.pageY);
+        zoom(point.x, point.y, event.gesture.scale, true);
     }).on('transformend', function(event) {
-        zoom(0, 0, event.gesture.scale, false);
+        var point = fromPixel(event.gesture.center.pageX, event.gesture.center.pageY);
+        zoom(point.x, point.y, event.gesture.scale, false);
     });
 });
 
