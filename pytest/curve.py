@@ -213,7 +213,7 @@ def parent_to_child(p):
 def random_endpoint(child, taken_side=None):
     """return a random endpoint in the current child not on taken_side"""
     sides = [s for s in SIDES[child] if s != taken_side]
-    return Point(child, random.choice(sides), random.random())
+    return Point(child, random.choice(sides), 0 if random.random() < 0.5 else 1)
 
 class LineSquare(square.Square):
     class Value:

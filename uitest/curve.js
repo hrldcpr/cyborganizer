@@ -1,4 +1,17 @@
 
+var OCEAN = '#004040';
+
+function colorComponent(x) {
+    x = Math.round(255 * x).toString(16);
+    if (x.length < 2) x = '0' + x;
+    return x;
+}
+
+function colorString(r, g, b) {
+    return '#' + colorComponent(r) + colorComponent(g) + colorComponent(b);
+}
+
+
 // 90 degree rotations:
 var ROTATED = {' ': ' ',
 	       ']': '‾',
@@ -124,14 +137,16 @@ $.each(SPLITS, function(parent, children) {
     console.log(s);
 });
 
-// def ifirst(xs):
-//     for x in xs:
-//         return x
+function ifirst(xs) {
+    for (x in xs)
+        return x;
+}
 
-// def interpolate(p, q, x):
-//     return tuple((1 - x)*a + x*b
-//                  for a,b in zip(p, q))
-
+function interpolate(p, q, x) {
+    return $.map(p, function(_, i) {
+        return (1 - x)*p[i] + x*q[i];
+    });
+}
 
 // class CornerLineSquare(square.Square):
 //     class Value:
@@ -170,147 +185,149 @@ $.each(SPLITS, function(parent, children) {
 //                              corners[line[0]], corners[line[1]])
 
 
-// class Point:
-//     """child in (0, 1, 2, 3) specifies the child id,
-//     side in (']', '‾', '[', '_') specifies side of the square
-//     and x between 0.0 and 1.0 specifies distance along the side"""
-//     def __init__(self, child, side, x):
-//         if child not in (0, 1, 2, 3):
-//             raise ValueError('invalid child id: %s' % child)
-//         if side not in (']', '‾', '[', '_'):
-//             raise ValueError('side=%s not a valid side' % side)
-//         if x < 0 or x > 1:
-//             raise ValueError('x=%s not in [0, 1]' % x)
-//         self.child = child
-//         self.side = side
-//         self.x = x
+function Point(child, side, x) {
+    // child in (0, 1, 2, 3) specifies the child id,
+    // side in (']', '‾', '[', '_') specifies side of the square
+    // and x between 0.0 and 1.0 specifies distance along the side
+    if ([0, 1, 2, 3].indexOf(child) < 0)
+        throw 'invalid child id: ' + child;
+    if ([']', '‾', '[', '_'].indexOf(side) < 0)
+        throw 'side=' + side + ' not a valid side';
+    if (x < 0 || x > 1)
+        throw 'x=' + x +' not in [0, 1]';
+    this.child = child;
+    this.side = side;
+    this.x = x;
 
-//     def get_neighbor(self):
-//         return Point(SIDES[self.child][self.side], opposite(self.side), 1 - self.x)
+    this.getNeighbor = function() {
+        return new Point(SIDES[this.child][this.side], opposite(this.side), 1 - this.x);
+    };
 
-// class Line:
-//     def __init__(self, start, end):
-//         if not (isinstance(start, Point) and isinstance(end, Point)):
-//             raise ValueError('start=%s and end=%s are not both Points' % (start, end))
-//         self.start = start
-//         self.end = end
+    this.toChild = function() {
+        // return the child point p corresponding to this point
+        // note that p.side == this.side THINK ABOUT IT
+        var line = LINES[this.side];
+        if (this.x < 0.5)
+            return new Point(line[0], this.side, 2*this.x);
+        else
+            return new Point(line[1], this.side, 2*this.x - 1);
+    };
+}
 
-// def parent_to_child(p):
-//     """return the child point q corresponding to p in the parent.
-//     note that q.side == p.side THINK ABOUT IT"""
+function Line(start, end) {
+    if (!(start instanceof Point && end instanceof Point))
+        throw 'start=' + start + ' and end=' + end + ' are not both Points';
+    this.start = start;
+    this.end = end;
+}
 
-//     a,b = LINES[p.side]
-//     if p.x < 0.5:
-//         return Point(a, p.side, 2*p.x)
-//     else:
-//         return Point(b, p.side, 2*p.x - 1)
 
-// def random_endpoint(child, taken_side=None):
-//     """return a random endpoint in the current child not on taken_side"""
-//     sides = [s for s in SIDES[child] if s != taken_side]
-//     return Point(child, random.choice(sides), random.random())
+function randomEndpoint(child, takenSide) {
+    // return a random endpoint in the current child not on takenSide
+    var sides = $.map(SIDES[child], function(_, s) { if (s != takenSide) return s; });
+    var side = sides[Math.floor(sides.length * Math.random())];
+    return new Point(child, side, Math.random());
+}
 
-// class LineSquare(square.Square):
-//     class Value:
-//         """inner is the color to the right of line
-//         and outer is the color of the rest of the square"""
-//         def __init__(self, outer=biome.OCEAN, inner=None, line=None):
-//             if any((inner, line)) and not all((inner, line)):
-//                 raise ValueError('squares have an inner color if and only if they have a line')
-//             self.outer = outer
-//             self.inner = inner
-//             self.line = line
+var rootSquare = new LineSquare(OCEAN);
+function LineSquare(outer, inner, line) {
+    // inner is the color to the right of line
+    // and outer is the color of the rest of the square
+    if ((inner && !line) || (line && !inner))
+        throw 'squares have an inner color if and only if they have a line';
+    this.outer = outer;
+    this.inner = inner;
+    this.line = line;
 
-//     DEFAULT = Value()
+    this.getChildren = function() {
+        if (this == rootSquare) P = 1; // root always becomes an island
+        else P = this.outer == OCEAN ? 0 : 0.5; // non-root ocean never becomes island
 
-//     def get_child_values(self):
-//         P = 1 if not self.parent else 0 if self.value.outer == biome.OCEAN else 0.5
-//         if self.value.line:
-//             # endpoints of children's lines must coincide with parent:
-//             start = parent_to_child(self.value.line.start)
-//             end = parent_to_child(self.value.line.end)
-//             inner = self.value.inner
-//         elif random.random() < P: # probability of empty square becoming a loop
-//             # lines in an empty parent must form a clockwise loop:
-//             # only possible loop is through all 4 squares, so we start clockwise from 0:
-//             start = Point(0, '_', random.random())
-//             end = start.get_neighbor()
-//             # i = biome.BIOMES.index(self.value.outer)
-//             # inner = biome.BIOMES[max(1, min(len(biome.BIOMES) - 1,
-//             #                                 i + random.choice((-1, 1))))]
-//             inner = random.choice(biome.BIOMES[1:])
-//         else: # half the time
-//             # empty children for empty parent:
-//             return (self.value,) * 4
+        var start, end, inner, outer;
+        if (this.line) {
+            // endpoints of children's lines must coincide with parent:
+            start = this.line.start.toChild();
+            end = this.line.end.toChild();
+            inner = this.inner;
+        } else if (Math.random() < P) { // probability of empty square becoming a loop
+            // lines in an empty parent must form a clockwise loop:
+            // only possible loop is through all 4 squares, so we start clockwise from 0:
+            start = new Point(0, '_', Math.random());
+            end = start.getNeighbor();
+            inner = colorString(Math.random(), Math.random(), Math.random());
+        } else { // empty children for empty parent
+            // don't copy root since it gets special treatment:
+            var copy = this != rootSquare ? this : new LineSquare(this.inner, this.outer, this.line);
+            return [copy, copy, copy, copy];
+        }
 
-//         children = collections.defaultdict(list)
-//         def store(p):
-//             children[p.child].append(p)
-//         store(start)
-//         point = start
-//         while point.child != end.child:
-//             # note that this will definitely reach end,
-//             # because there are only two internal sides per square and one will be taken,
-//             # so we will not loop back.
-//             point = random_endpoint(point.child, taken_side=point.side)
-//             store(point)
-//             point = point.get_neighbor()
-//             store(point)
-//         store(end)
+        var children = {};
+        var n = 0;
+        function store(p) {
+            if (!children[p.child]) {
+                children[p.child] = [];
+                n++;
+            }
+            children[p.child].push(p);
+        }
+        store(start);
+        var point = start;
+        while (point.child != end.child) {
+            // note that this will definitely reach end,
+            // because there are only two internal sides per square and one will be taken,
+            // so we will not loop back.
+            point = randomEndpoint(point.child, point.side);
+            store(point);
+            point = point.getNeighbor();
+            store(point);
+        }
+        store(end);
 
-//         if len(children) < 4: # some empty children, so figure out which are inside
-//             assert self.value.line # this should only happen for a nonempty parent
-//             # assemble inside children in clockwise order:
-//             inside = [LINES[start.side][0], start.child,
-//                       end.child, LINES[end.side][1]]
-//             while inside[0] != inside[-1]:
-//                 inside.append(ROTATED[inside[-1]])
-//             inside = set(inside)
+        var inside;
+        if (n < 4) { // some empty children, so figure out which are inside
+            if (!this.line) throw 'empty parent split into empty children';
+            // assemble inside children in clockwise order:
+            inside = [LINES[start.side][0], start.child,
+                      end.child, LINES[end.side][1]]
+            while (inside[0] != inside[inside.length - 1])
+                inside.push(ROTATED[inside[inside.length - 1]]);
+        }
 
-//         values = []
-//         for i in xrange(4):
-//             if i in children:
-//                 values.append(LineSquare.Value(self.value.outer, inner,
-//                                                Line(*children[i])))
-//             else:
-//                 values.append(LineSquare.Value(inner if i in inside else self.value.outer))
-//         return tuple(values)
+        var values = [];
+        for (var i = 0; i < 4; i++) {
+            var line = children[i];
+            if (line)
+                values.push(new LineSquare(this.outer, inner,
+                                           new Line(line[0], line[1])));
+            else
+                values.push(new LineSquare(inside.indexOf(i) >= 0 ? inner : this.outer));
+        }
+        return values;
+    };
 
-//     def draw(self, surface):
-//         if self.value.outer in biome.IMAGES:
-//             surface.blit(biome.IMAGES[self.value.outer], (0, 0))
-//         else:
-//             surface.fill(square.as_color(self.value.outer))
+    this.getPolygon = function() {
+        if (!this.line) return;
 
-//         if self.value.line:
-//             mask = surface.copy()
-//             mask.fill((0, 0, 0))
-//             w = mask.get_width()
-//             h = mask.get_height()
-//             corners = [(0, 0), (w, 0),
-//                        (0, h), (w, h)]
-//             poly = []
-//             a,b = LINES[self.value.line.start.side]
-//             poly.append(corners[a])
-//             start = interpolate(corners[a], corners[b], self.value.line.start.x)
-//             poly.append(start)
-//             a,b = LINES[self.value.line.end.side]
-//             end = interpolate(corners[a], corners[b], self.value.line.end.x)
-//             poly.append(end)
-//             # close the polygon, clockwise:
-//             while poly[0] != poly[-1]:
-//                 poly.append(corners[b])
-//                 b = ROTATED[b]
+        var corners = [[0, 0], [1, 0],
+                       [0, 1], [1, 1]];
+        var poly = [];
 
-//             pygame.draw.polygon(mask, (255, 255, 255), poly)
+        var line = LINES[this.line.start.side];
+        poly.push(corners[line[0]]);
+        var start = interpolate(corners[line[0]], corners[line[1]], this.line.start.x);
+        poly.push(start);
 
-//             # remove inner from outer:
-//             surface.blit(mask, (0, 0), special_flags=pygame.BLEND_SUB)
+        line = LINES[this.line.end.side];
+        var end = interpolate(corners[line[0]], corners[line[1]], this.line.end.x);
+        poly.push(end);
 
-//             # fill inner with image or color:
-//             if self.value.inner in biome.IMAGES:
-//                 mask.blit(biome.IMAGES[self.value.inner], (0, 0), special_flags=pygame.BLEND_MULT)
-//             else:
-//                 mask.fill(square.as_color(self.value.inner), special_flags=pygame.BLEND_MULT)
-//             # add inner to outer:
-//             surface.blit(mask, (0, 0), special_flags=pygame.BLEND_ADD)
+        // close the polygon, clockwise:
+        var child = line[1];
+        while (poly[0] != poly[poly.length - 1]) {
+            poly.push(corners[child]);
+            child = ROTATED[child];
+        }
+
+        return poly;
+    };
+}
