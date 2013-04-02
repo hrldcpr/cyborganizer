@@ -40,6 +40,10 @@ function fromPixelDelta(dx, dy) {
     return createSVGPoint(delta.x - zero.x, delta.y - zero.y);
 }
 
+function lg(x) {
+    return Math.log(x) / Math.LN2;
+}
+
 var squares = {};
 function getSquare(x, y, z) {
     var scale = Math.pow(2, z);
@@ -62,10 +66,12 @@ function getSquare(x, y, z) {
     return squares[key];
 }
 
+var nSquares = 0;
 function createSquare(x, y, z, square) {
     var key = x + ',' + y + ',' + z;
     if (squares[key]) throw 'createSquare called on existing key ' + key;
     squares[key] = square;
+    nSquares++;
 
     var scale = Math.pow(2, z);
     createSVG('rect')
@@ -93,18 +99,27 @@ function createSquare(x, y, z, square) {
     }
 }
 
-function draw(x, y, zoom) {
-    // draw everything subzoom levels beyond current zoom:
-    var subzoom = 4;
-    var n = Math.pow(2, subzoom);
-    zoom = Math.floor(zoom) + subzoom;
+var SUBZOOM = 4;
+function draw(zoom) {
+    var svg = $('#svg');
+    var topLeft = fromPixel(0, 0);
+    var bottomRight = fromPixel(svg.width(), svg.height());
+
+    zoom = Math.ceil(zoom) + SUBZOOM;
     var scale = Math.pow(2, zoom);
-    x = Math.floor(x * scale);
-    y = Math.floor(y * scale);
-    for (var j = 0; j < n; j++) {
-        for (var i = 0; i < n; i++)
-            getSquare(x + i, y + j, zoom);
+    var left = Math.floor(topLeft.x * scale);
+    var top = Math.floor(topLeft.y * scale);
+    var right = Math.ceil(bottomRight.x * scale);
+    var bottom = Math.ceil(bottomRight.y * scale);
+    var n = (bottom - top) * (right - left);
+    console.log('n', n);
+    console.log('nSquares', nSquares);
+
+    for (var y = top; y <= bottom; y++) {
+        for (var x = left; x <= right; x++)
+            getSquare(x, y, zoom);
     }
+    console.log('nSquares', nSquares);
 }
 
 function translate(dx, dy, fleeting) {
@@ -113,23 +128,21 @@ function translate(dx, dy, fleeting) {
     transformSVG($('#world'), fleetingTransformation);
     if (!fleeting) transformation = fleetingTransformation;
 
-    var translation = getTranslation(fleetingTransformation);
-    var scale = getScale(fleetingTransformation);
-    draw(-translation.x / scale, -translation.y / scale, Math.log(scale) / Math.LN2);
+    draw(lg(getScale(fleetingTransformation)));
 }
 
 var MAX_ZOOM = 100, MIN_ZOOM = -MAX_ZOOM;
 function zoom(x, y, scale, fleeting) {
     var fleetingTransformation = transformation
         .translate(x, y).scale(scale).translate(-x, -y);
-    var zoom = Math.log(getScale(fleetingTransformation)) / Math.LN2;
 
+    var zoom = lg(getScale(fleetingTransformation));
     if (zoom < MIN_ZOOM || zoom > MAX_ZOOM) return;
 
     transformSVG($('#world'), fleetingTransformation);
     if (!fleeting) transformation = fleetingTransformation;
 
-    draw(x, y, zoom);
+    draw(zoom);
 }
 
 
